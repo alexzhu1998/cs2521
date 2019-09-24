@@ -1,0 +1,13 @@
+#!/bin/sh
+
+
+#minutes
+time1=`cat tmp | egrep "user" | sed 's/.*r//;s/m.*//'`
+echo $time1 "minutes"
+#seconds
+time2=`cat tmp | egrep "user" | sed 's/.*m//;s/s//'`
+echo $time2 "seconds"
+time=$(echo $time1*60 + $time2 | bc)
+echo $time 
+#time=`cat tmp | egrep "user" | sed 's/.*m//;s/s//'`
+#echo $time

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+for t in 01 02 03 04 05 
+
+do
+
+echo ____ Run $t ____
+./randList 10000 | sort -R > whateverFile
+#seq 5000 | sort -nr > whateverFile
+#echo === MyTest reverseSortedWithDuplicates $t ===
+time ./useIntList < whateverFile > /dev/null
+#echo === TheirTest reverseSortedWithDuplicates $t ===
+time sort -n < whateverFile > /dev/null
+
+
+
+done

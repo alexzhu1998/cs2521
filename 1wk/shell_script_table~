@@ -1,0 +1,25 @@
+#!/bin/sh
+
+for t in 01 02 03 04 05 
+
+do
+
+echo === Case $t ===
+
+seq 10000 > alreadySortedNoDuplicates
+echo === MyTest $t ===
+time ./useIntList < alreadySortedNoDuplicates > /dev/null
+echo === TheirTest $t ===
+time sort -n < alreadySortedNoDuplicates > /dev/null
+seq 10000 | sort -nr > reverseSortedNoDuplicates
+echo === MyTest $t ===
+time ./useIntList < reverseSortedNoDuplicates > /dev/null
+echo === TheirTest $t ===
+time sort -n < reverseSortedNoDuplicates > /dev/null
+seq 10000 | sort -R > randomOrderNoDuplicates
+echo === MyTest $t ===
+time ./useIntList < randomOrderNoDuplicates > /dev/null
+echo === TheirTest $t ===
+time sort -n < randomOrderNoDuplicates > /dev/null
+
+done

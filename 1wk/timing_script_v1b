@@ -1,0 +1,16 @@
+#!/bin/sh
+
+for t in 01 02 03 04 05 
+
+do
+
+echo ____ Run $t ____
+./randList 5000 > alreadySortedWithDuplicates
+#seq 5000 > alreadySortedNoDuplicates
+echo === MyTest alreadySortedWithDuplicates $t ===
+time ./useIntList < alreadySortedWithDuplicates > /dev/null
+echo === TheirTest alreadySortedWithDuplicates $t ===
+time sort -n < alreadySortedWithDuplicates > /dev/null
+
+
+done

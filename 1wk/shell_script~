@@ -1,0 +1,44 @@
+#!/bin/sh
+
+
+filename="whateverFile"
+D="D" #D,ND
+flag="-n" #-R,-ns,-n
+n=10000 #5000, 10000
+runs=10
+totalMyTime=0
+totalTheirTime=0
+
+if [ $D=="D" ]
+then 
+    script="./randList"
+elif [ $D=="ND"]
+then
+    script="seq"
+fi
+
+
+for (( t=1; $t<=$runs; t++))
+do 
+    #echo ____ Run $t $flag $D $n ____
+    ### initiate Sequence
+    seq $n | sort $flag > $filename
+
+    (time ./useIntList < $filename) 1> /dev/null 2> tmp
+    time=`cat tmp | egrep "user" | sed 's/.*m//;s/s//'`
+    #echo $time
+    totalMyTime=$(echo $totalMyTime + $time | bc)
+    
+    (time sort -n < $filename) 1> /dev/null 2> tmp2
+    time=`cat tmp2 | egrep "user" | sed 's/.*m//;s/s//'`
+    #echo $time
+    totalTheirTime=$(echo $totalTheirTime + $time | bc)
+done
+
+echo === MyTest avg ===
+echo $Test $(bc <<< "scale=3;$totalMyTime / $runs")
+echo === TheirTest avg ===
+echo $Test $(bc <<< "scale=3;$totalTheirTime / $runs")
+
+
+

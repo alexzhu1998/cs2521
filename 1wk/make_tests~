@@ -1,0 +1,9 @@
+#!/bin/sh
+
+seq 10 | sort -R > tests/01
+seq 10 | sort -nr > tests/02
+./randList 10 11 > tests/03
+seq 10 | sort -n > tests/04
+./randList 1 10 > tests/05
+./randList 2 11 > tests/06
+seq 0 > tests/06

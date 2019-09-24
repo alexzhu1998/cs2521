@@ -1,0 +1,117 @@
+#!/bin/sh
+
+time_output()
+{
+    (sh timing_script $1 $2 $3 $4) 1> tableTmpStorage
+    myTime=`cat tableTmpStorage | egrep "user1" | sed 's/.*user1//'`
+    theirTime=`cat tableTmpStorage | egrep "user2"| sed 's/.*user2//'` 
+    
+    if [ $2 == "D" ]
+        then Duplicate="yes"
+    elif [ $2 == "ND" ]
+        then Duplicate="no"
+    fi
+    
+    if [ $3 = '-ns' ]
+        then Order="reverse"
+        #echo 'reverse'
+    elif [ $3 = '-R' ]
+        then Order="random"
+        #echo 'random'
+    elif [ $3 = '-n' ]
+        then Order="sorted"
+        #echo 'sorted'
+    fi
+    
+    printf "$1 \t $Order \t $Duplicate \t $4 \t $myTime \t $theirTime\n" | column -t -s $'\t'>> timing.txt
+}
+
+
+
+
+# > is output data
+# >> is append data
+printf 'Input \t Initial \t Has \t Number \t AvgTime \t AvgTime\n'  | column -t -s $'\t'> timing.txt
+printf 'Size \t Order \t Duplicates \t ofRuns \t foruseIntList \t forSort\n' | column -t -s $'\t'>> timing.txt
+
+#time=`cat tmp | egrep "user" | sed 's/.*m//;s/s//'`
+
+
+echo "function starts"
+echo "5000 1"
+time_output 5000 ND -R 10
+echo "5000 2"
+time_output 5000 ND -n 10
+echo "5000 3"
+time_output 5000 ND -ns 10
+echo "5000 4"
+time_output 5000 D -R 10
+echo "5000 5"
+time_output 5000 D -n 10
+echo "5000 6"
+time_output 5000 D -ns 10
+echo "10000 1"
+time_output 10000 ND -R 10
+echo "10000 2"
+time_output 10000 ND -n 10
+echo "10000 3"
+time_output 10000 ND -ns 10
+echo "10000 4"
+time_output 10000 D -R 10
+echo "10000 5"
+time_output 10000 D -n 10
+echo "10000 6"
+time_output 10000 D -ns 10
+echo "20000 1"
+time_output 20000 ND -R 10
+echo "20000 2"
+time_output 20000 ND -n 10
+echo "20000 3"
+time_output 20000 ND -ns 10
+echo "20000 4"
+time_output 20000 D -R 10
+echo "20000 5"
+time_output 20000 D -n 10
+echo "20000 6"
+time_output 20000 D -ns 10
+echo "50000 1"
+time_output 50000 ND -R 10
+echo "50000 2"
+time_output 50000 ND -n 10
+echo "50000 3"
+time_output 50000 ND -ns 10
+echo "50000 4"
+time_output 50000 D -R 10
+echo "50000 5"
+time_output 50000 D -n 10
+echo "50000 6"
+time_output 50000 D -ns 10
+echo "100000 1"
+time_output 100000 ND -R 10
+echo "100000 2"
+time_output 100000 ND -n 10
+echo "100000 3"
+time_output 100000 ND -ns 10
+echo "100000 4"
+time_output 100000 D -R 10
+echo "100000 5"
+time_output 100000 D -n 10
+echo "100000 6"
+time_output 100000 D -ns 10
+echo "function ends"
+
+column -t timing.txt > timing2.txt && mv timing2.txt timing.txt
+
+#We can see that the default sorting algorithm is much faster than our own sorting algorithm. In 50000 length random sequences with duplicates, the default sorting algo is 236 times faster than ours, and in 100000 length random sequences with duplicates, it is 834 times faster. 
+
+#Comparing 50000 length random sequences with duplicates with 100000, we can see that time spent for the default only increase by 2.5 times, but for our own algorithm, it increase by 4 times. Evidently this increase in time complexity is a result of inefficiency in our own algorithm. 
+
+#Also, comparing different types of starting sequences, we can see that reverse and sorted has the fastest average time compared to random sequences. It is because in our code for linked list, the code exits early if any new number can be inserted into the front or back. And for the rest of the numbers, they will run through the main loop to insert in the middle.
+
+
+xdg-open ./timing.txt
+
+
+
+
+

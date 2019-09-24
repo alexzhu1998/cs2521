@@ -1,0 +1,58 @@
+#!/bin/sh
+
+
+filename="whateverFile"
+D="ND" #D,ND
+Order="Rev" #Rand, Rev, Sort
+n=10000 #5000, 10000
+number=5
+totalMyTime=0
+totalTheirTime=0
+
+if [ $D=="D" ]
+then 
+    script="./randList"
+elif [ $D=="ND"]
+then
+    script="seq"
+fi
+
+if [ $Order=="Rand" ]
+then 
+    flag="-R"
+elif [ $Order=="Rev" ]
+then
+    flag="-nr"
+elif [ $Order=="Sort" ]
+then
+    flag="-n"
+fi
+
+
+
+#for i in 5000 10000
+#do 
+#    for 
+#done
+for t in 01 02 03 04 05 
+do 
+    echo ____ Run $t $Order $D $n ____
+    $script $n > $filename
+
+    (time ./useIntList < $filename) 1> /dev/null 2> tmp
+    time=`cat tmp | egrep "user" | sed 's/.*m//;s/s//'`
+    
+    totalMyTime=$(echo $totalMyTime + $time | bc)
+    
+    (time sort $flag < $filename) 1> /dev/null 2> tmp2
+    time=`cat tmp2 | egrep "user" | sed 's/.*m//;s/s//'`
+    
+    totalTheirTime=$(echo $totalTheirTime + $time | bc)
+done
+echo === MyTest avg ===
+echo $Test $(bc <<< "scale=3;$totalMyTime / $number")
+echo === TheirTest avg ===
+echo $Test $(bc <<< "scale=3;$totalTheirTime / $number")
+
+
+

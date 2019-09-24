@@ -1,0 +1,41 @@
+Input   Initial  Has         Number  AvgTime        AvgTime
+Size    Order    Duplicates  ofRuns  foruseIntList  forSort
+5000    random   no          10      .100           0
+5000    sorted   no          10      .008           0
+5000    reverse  no          10      .008           0
+5000    random   yes         10      .096           .002
+5000    sorted   yes         10      .008           0
+5000    reverse  yes         10      .008           0
+10000   random   no          10      .340           .004
+10000   sorted   no          10      .012           0
+10000   reverse  no          10      .013           0
+10000   random   yes         10      .342           .004
+10000   sorted   yes         10      .019           0
+10000   reverse  yes         10      .015           0
+20000   random   no          10      1.890          .008
+20000   sorted   no          10      .029           .003
+20000   reverse  no          10      .027           .004
+20000   random   yes         10      1.885          .008
+20000   sorted   yes         10      .028           .004
+20000   reverse  yes         10      .028           .004
+50000   random   no          10      14.448         .026
+50000   sorted   no          10      .064           .008
+50000   reverse  no          10      .080           .017
+50000   random   yes         10      14.308         .029
+50000   sorted   yes         10      .084           .015
+50000   reverse  yes         10      .088           .016
+100000  random   no          10      60.956         .067
+100000  sorted   no          10      .147           .035
+100000  reverse  no          10      .145           .033
+100000  random   yes         10      60.867         .073
+100000  sorted   yes         10      .125           .031
+100000  reverse  yes         10      .139           .031
+
+We can see that the default sorting algorithm is much faster than our own sorting algorithm. In 50000 length random sequences with duplicates, the default sorting algo is 236 times faster than ours, and in 100000 length random sequences with duplicates, it is 834 times faster. 
+
+Comparing 50000 length random sequences with duplicates with 100000, we can see that time spent for the sorting algo only increase by 2.5 times.  
+ sequences for sort, we can see that reverse and sorted has the fastest
+ average time. It is because in our code for linked list, the code exits
+ early if any new number can be inserted into the front or back. And for
+ the rest of the numbers, they will run through the main loop to insert
+ in the middle.
