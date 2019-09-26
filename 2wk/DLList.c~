@@ -227,7 +227,7 @@ bool DLListMoveTo (DLList L, int i)
 void DLListBefore (DLList L, char *it)
 {
 	assert (L != NULL);
-    malloc(sizeof())
+	/// COMPLETE THIS FUNCTION
 }
 
 /** insert an item after current item
