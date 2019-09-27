@@ -227,7 +227,23 @@ bool DLListMoveTo (DLList L, int i)
 void DLListBefore (DLList L, char *it)
 {
 	assert (L != NULL);
-    malloc(sizeof())
+    struct DLListNode *new = newDLListNode(it);
+    if (L->curr->prev == NULL) {
+        //L->first = NULL
+        new->prev = NULL;
+        new->next = L->curr;
+
+        L->curr->prev = new;
+        L->curr = new;
+    } else {
+        new->prev = L->curr->prev;
+        new->next = L->curr;
+        
+        L->curr->prev->next = new; 
+        L->curr->prev = new;
+        L->curr = new;
+    }
+    nitems ++;
 }
 
 /** insert an item after current item
@@ -235,7 +251,23 @@ void DLListBefore (DLList L, char *it)
 void DLListAfter (DLList L, char *it)
 {
 	assert (L != NULL);
-	/// COMPLETE THIS FUNCTION
+    struct DLListNode *new = newDLListNode(it);
+    if (L->curr->next == NULL) {
+        //L->last = NULL
+        new->next = NULL;
+        new->prev = L->curr;
+        
+        L->curr->next = new;
+        L->curr = new;
+    } else {
+        new->prev = L->curr->prev;
+        new->next = L->curr;
+        
+        L->curr->prev->next = new; 
+        L->curr->prev = new;
+        L->curr = new;
+    }
+    nitems ++;
 }
 
 /** delete current item
@@ -245,7 +277,23 @@ void DLListAfter (DLList L, char *it)
 void DLListDelete (DLList L)
 {
 	assert (L != NULL);
-	/// COMPLETE THIS FUNCTION
+    if (L->curr->next == NULL) {
+        //L->last = NULL
+        
+        L->curr->prev = new;
+        L->curr = new;
+    } else if (L->curr->prev == NULL) {
+        
+    }
+    else {
+        new->prev = L->curr->prev;
+        new->next = L->curr;
+        
+        L->curr->prev->next = L->curr; 
+        L->curr->prev = new;
+        L->curr = new;
+    }
+    nitems ++;
 }
 
 /** return number of elements in a list */
