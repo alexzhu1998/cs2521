@@ -230,8 +230,11 @@ void DLListBefore (DLList L, char *it)
     struct DLListNode *new = newDLListNode(it);
     if (L->curr->prev == NULL) {
         //L->first = NULL
+        new->prev = NULL;
         new->next = L->curr;
+
         L->curr->prev = new;
+        L->curr = new;
     } else {
         new->prev = L->curr->prev;
         new->next = L->curr;
@@ -240,7 +243,7 @@ void DLListBefore (DLList L, char *it)
         L->curr->prev = new;
         L->curr = new;
     }
-    nitems ++;
+    nitems++;
 }
 
 /** insert an item after current item
@@ -250,9 +253,12 @@ void DLListAfter (DLList L, char *it)
 	assert (L != NULL);
     struct DLListNode *new = newDLListNode(it);
     if (L->curr->next == NULL) {
-        //L->first = NULL
-        new->next = L->curr;
-        L->curr->prev = new;
+        //L->last = NULL
+        new->next = NULL;
+        new->prev = L->curr;
+        
+        L->curr->next = new;
+        L->curr = new;
     } else {
         new->prev = L->curr->prev;
         new->next = L->curr;
@@ -261,7 +267,7 @@ void DLListAfter (DLList L, char *it)
         L->curr->prev = new;
         L->curr = new;
     }
-    nitems ++;
+    nitems++;
 }
 
 /** delete current item
@@ -271,7 +277,27 @@ void DLListAfter (DLList L, char *it)
 void DLListDelete (DLList L)
 {
 	assert (L != NULL);
-	/// COMPLETE THIS FUNCTION
+	struct DLListNode *temp = L->curr;
+	//last
+    if (L->curr->next == NULL) {
+        //L->last = NULL
+        L->curr->prev->next = NULL;
+        L->last = L->curr->prev;
+        L->curr = L->curr->prev;
+        free(temp);
+    } else if (L->curr->prev == NULL) {
+    //first
+        L->curr->next->prev = NULL;
+        L->first = L->curr->next;
+        L->curr = L->curr->next;
+        free(temp);
+    } else {
+        L->curr->next->prev = L->curr->prev;
+        L->curr->prev->next = L->curr->next;
+        L->curr = L->curr->next;
+        free(temp);
+    }
+    nitems--;
 }
 
 /** return number of elements in a list */
