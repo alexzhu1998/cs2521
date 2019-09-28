@@ -257,8 +257,8 @@ void DLListBefore (DLList L, char *it)
 void DLListAfter (DLList L, char *it)
 {
 	assert (L != NULL);
+    struct DLListNode *new = newDLListNode(it);
 	if (!DLListIsEmpty(L)) {
-        struct DLListNode *new = newDLListNode(it);
         if (L->curr->next == NULL) {
             //L->last = NULL
             new->next = NULL;
