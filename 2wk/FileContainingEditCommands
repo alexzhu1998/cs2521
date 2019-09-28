@@ -5,4 +5,4 @@
 # check delete at front, back, middle
 # check current position is correct 
 
-./myed text < somefile
+./myed text < somefile > out1
