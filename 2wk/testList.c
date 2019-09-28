@@ -9,12 +9,27 @@
 
 int main (void)
 {
+    printf("Test 1 Read inputs and print outputs from a DLList\n");
 	DLList myList = getDLList (stdin);
 	putDLList (stdout, myList);
 	assert (validDLList (myList));
 
-	// TODO: more tests needed here
-
+	
+	
+	printf("Test 2 Inserting before currentNode in empty DLList");
+    printf("Length: %zu\n", DLListLength(myList));
+    DLListBefore(myList, "Hello");    	
+	putDLList (stdout, myList);
+	assert (validDLList (myList));
 	freeDLList (myList);
+	
+    //one node
+    /*
+    DLList oneNodeList = newDLList ();
+    
+    putDLList (stdout, oneNodeList);
+	assert (validDLList (oneNodeList));
+	freeDLList (oneNodeList);
+    */
 	return EXIT_SUCCESS;
 }
