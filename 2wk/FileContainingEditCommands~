@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# check insert before at front, back, middle
+# check insert after at front, back, middle
+# check delete at front, back, middle
+# check current position is correct 
+
+./myed text < somefile
+

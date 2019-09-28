@@ -232,7 +232,8 @@ void DLListBefore (DLList L, char *it)
         //L->first = NULL
         new->prev = NULL;
         new->next = L->curr;
-
+        
+        L->first = new;
         L->curr->prev = new;
         L->curr = new;
     } else {
@@ -257,14 +258,15 @@ void DLListAfter (DLList L, char *it)
         new->next = NULL;
         new->prev = L->curr;
         
+        L->last = new;
         L->curr->next = new;
         L->curr = new;
     } else {
-        new->prev = L->curr->prev;
-        new->next = L->curr;
+        new->prev = L->curr;
+        new->next = L->curr->next;
         
-        L->curr->prev->next = new; 
-        L->curr->prev = new;
+        L->curr->next->prev = new; 
+        L->curr->next = new;
         L->curr = new;
     }
     L->nitems++;
@@ -278,24 +280,31 @@ void DLListDelete (DLList L)
 {
 	assert (L != NULL);
 	struct DLListNode *temp = L->curr;
+	
+	if (L->curr->prev == NULL && L->curr->next == NULL) {
+	    L->first = NULL;
+	    L->last = NULL;
+	    L->curr = NULL;
+	    freeDLListNode(temp);
 	//last
-    if (L->curr->next == NULL) {
+    } else if (L->curr->next == NULL) {
         //L->last = NULL
+        
         L->curr->prev->next = NULL;
         L->last = L->curr->prev;
-        L->curr = L->curr->prev;
-        free(temp);
+        
+        freeDLListNode(temp);
     } else if (L->curr->prev == NULL) {
     //first
         L->curr->next->prev = NULL;
         L->first = L->curr->next;
-        L->curr = L->curr->next;
-        free(temp);
+        L->curr = L->first;
+        freeDLListNode(temp);
     } else {
         L->curr->next->prev = L->curr->prev;
         L->curr->prev->next = L->curr->next;
         L->curr = L->curr->next;
-        free(temp);
+        freeDLListNode(temp);
     }
     L->nitems--;
 }
