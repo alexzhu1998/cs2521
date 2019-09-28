@@ -1,2 +1,20 @@
-% 
-.
+#!/bin/sh
+
+# check insert before at front, back, middle
+# check insert after at front, back, middle
+# check delete at front, back, middle
+# check current position is correct 
+
+// Editor commands:
+// . = show current line
+// % = show all lines
+// p = move to previous line and show it
+// n = move to next line and show it
+// NN = move to line number NN
+// +NN = move forward by NN lines and show line
+// -NN = move backward by NN lines and show line
+// i = read new line and insert in front of current
+// a = read new line and insert after current
+// d = delete current line
+// w = write out contents of file to file FileName.new
+// q = quit from the editor
