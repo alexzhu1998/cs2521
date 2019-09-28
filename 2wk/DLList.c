@@ -278,36 +278,36 @@ void DLListAfter (DLList L, char *it)
  * if current was only item, current becomes null */
 void DLListDelete (DLList L)
 {
-	assert (L != NULL);
-	struct DLListNode *temp = L->curr;
-	
-	if (L->curr->prev == NULL && L->curr->next == NULL) {
-	    L->first = NULL;
-	    L->last = NULL;
-	    L->curr = NULL;
-	    freeDLListNode(temp);
-	//last
-    } else if (L->curr->next == NULL) {
-        //L->last = NULL
-        
-        L->curr->prev->next = NULL;
-        L->last = L->curr->prev;
-        L->curr = L->last;
-        freeDLListNode(temp);
-    } else if (L->curr->prev == NULL) {
-    //first
-        L->curr->next->prev = NULL;
-        L->first = L->curr->next;
-        L->curr = L->first;
-        freeDLListNode(temp);
-    } else {
-        L->curr->next->prev = L->curr->prev;
-        L->curr->prev->next = L->curr->next;
-        L->curr = L->curr->next;
-        freeDLListNode(temp);
+    if (!DLListIsEmpty(L)) {
+	    struct DLListNode *temp = L->curr;
+	    
+	    if (L->curr->prev == NULL && L->curr->next == NULL) {
+	        L->first = NULL;
+	        L->last = NULL;
+	        L->curr = NULL;
+	        freeDLListNode(temp);
+	    //last
+        } else if (L->curr->next == NULL) {
+            //L->last = NULL
+            
+            L->curr->prev->next = NULL;
+            L->last = L->curr->prev;
+            L->curr = L->last;
+            freeDLListNode(temp);
+        } else if (L->curr->prev == NULL) {
+        //first
+            L->curr->next->prev = NULL;
+            L->first = L->curr->next;
+            L->curr = L->first;
+            freeDLListNode(temp);
+        } else {
+            L->curr->next->prev = L->curr->prev;
+            L->curr->prev->next = L->curr->next;
+            L->curr = L->curr->next;
+            freeDLListNode(temp);
+        }
+        L->nitems--;
     }
-    L->nitems--;
-    printf("%zu",L->nitems);
 }
 
 /** return number of elements in a list */
