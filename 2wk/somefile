@@ -5,6 +5,8 @@
 # check delete at front, back, middle
 # check current position is correct 
 
+# check insert when size is 0
+
 // Editor commands:
 // . = show current line
 // % = show all lines

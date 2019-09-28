@@ -227,24 +227,29 @@ bool DLListMoveTo (DLList L, int i)
 void DLListBefore (DLList L, char *it)
 {
 	assert (L != NULL);
-    struct DLListNode *new = newDLListNode(it);
-    if (L->curr->prev == NULL) {
-        //L->first = NULL
-        new->prev = NULL;
-        new->next = L->curr;
-        
-        L->first = new;
-        L->curr->prev = new;
-        L->curr = new;
+	struct DLListNode *new = newDLListNode(it);
+	if (!DLListIsEmpty(L)) {
+        if (L->curr->prev == NULL) {
+            //L->first = NULL
+            new->prev = NULL;
+            new->next = L->curr;
+            
+            L->first = new;
+            L->curr->prev = new;
+            L->curr = new;
+        } else {
+            new->prev = L->curr->prev;
+            new->next = L->curr;
+            
+            L->curr->prev->next = new; 
+            L->curr->prev = new;
+            L->curr = new;
+        }
+        L->nitems++;
     } else {
-        new->prev = L->curr->prev;
-        new->next = L->curr;
-        
-        L->curr->prev->next = new; 
-        L->curr->prev = new;
         L->curr = new;
+        L->first = L->last = L->curr;
     }
-    L->nitems++;
 }
 
 /** insert an item after current item
@@ -252,24 +257,29 @@ void DLListBefore (DLList L, char *it)
 void DLListAfter (DLList L, char *it)
 {
 	assert (L != NULL);
-    struct DLListNode *new = newDLListNode(it);
-    if (L->curr->next == NULL) {
-        //L->last = NULL
-        new->next = NULL;
-        new->prev = L->curr;
-        
-        L->last = new;
-        L->curr->next = new;
-        L->curr = new;
+	if (!DLListIsEmpty(L)) {
+        struct DLListNode *new = newDLListNode(it);
+        if (L->curr->next == NULL) {
+            //L->last = NULL
+            new->next = NULL;
+            new->prev = L->curr;
+            
+            L->last = new;
+            L->curr->next = new;
+            L->curr = new;
+        } else {
+            new->prev = L->curr;
+            new->next = L->curr->next;
+            
+            L->curr->next->prev = new; 
+            L->curr->next = new;
+            L->curr = new;
+        }
+        L->nitems++;
     } else {
-        new->prev = L->curr;
-        new->next = L->curr->next;
-        
-        L->curr->next->prev = new; 
-        L->curr->next = new;
         L->curr = new;
+        L->first = L->last = L->curr;
     }
-    L->nitems++;
 }
 
 /** delete current item
