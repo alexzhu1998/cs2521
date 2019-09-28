@@ -245,11 +245,11 @@ void DLListBefore (DLList L, char *it)
             L->curr->prev = new;
             L->curr = new;
         }
-        L->nitems++;
     } else {
         L->curr = new;
         L->first = L->last = L->curr;
     }
+     L->nitems++;
 }
 
 /** insert an item after current item
@@ -275,11 +275,11 @@ void DLListAfter (DLList L, char *it)
             L->curr->next = new;
             L->curr = new;
         }
-        L->nitems++;
     } else {
         L->curr = new;
         L->first = L->last = L->curr;
     }
+    L->nitems++;
 }
 
 /** delete current item
