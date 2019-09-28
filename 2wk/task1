@@ -2,4 +2,5 @@
 
 ./myed text < FileContainingEditCommands > out1
 /web/cs2521/19T3/labs/week02/myed text < FileContainingEditCommands > out2
+echo 'differences are'
 diff out1 out2
