@@ -18,7 +18,7 @@ int main (void)
 	
 	
 	printf("Test 2 Inserting before currentNode in empty DLList\n");
-	DLList myList = newDLList();
+	myList = newDLList();
     printf("Length: %zu\n", DLListLength(myList));
     DLListBefore(myList, "Hello");    	
 	putDLList (stdout, myList);
