@@ -30,7 +30,7 @@ then
 fi
 
 
-for (( t=1; $t<=$runs; t++))
+for (( t=1; $t<=$runs; t++ ))
 do 
     #echo ____ Run $t $flag $D $n ____
     ### initiate Sequence

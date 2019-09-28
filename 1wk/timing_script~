@@ -53,8 +53,6 @@ do
     time2=`cat tmp2 | egrep "user" | sed 's/.*m//;s/s//'`
     #runtime in seconds
     time=$(echo $time1*60 + $time2 | bc)
-    time=`cat tmp2 | egrep "user" | sed 's/.*m//;s/s//'`
-    #echo $time
     totalTheirTime=$(echo $totalTheirTime + $time | bc)
 done
 
