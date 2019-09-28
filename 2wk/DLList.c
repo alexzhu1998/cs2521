@@ -292,7 +292,7 @@ void DLListDelete (DLList L)
         
         L->curr->prev->next = NULL;
         L->last = L->curr->prev;
-        
+        L->curr = L->last;
         freeDLListNode(temp);
     } else if (L->curr->prev == NULL) {
     //first
