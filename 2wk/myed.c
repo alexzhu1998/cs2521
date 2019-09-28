@@ -99,7 +99,7 @@ int main (int argc, char *argv[])
 
 		case 'i': {
 			// read new line and insert in front of current
-			char new[MAX] = {};
+			char new[MAX] = {'\n'};
 			fgets (new, MAX, stdin);
 			new[strlen (new) - 1] = '\0';
 			DLListBefore (lines, new);
@@ -107,7 +107,7 @@ int main (int argc, char *argv[])
 
 		case 'a': {
 			// read new line and insert after current
-			char new[MAX] = {};
+			char new[MAX] = {'\n'};
 			fgets (new, MAX, stdin);
 			new[strlen (new) - 1] = '\0';
 			DLListAfter (lines, new);
