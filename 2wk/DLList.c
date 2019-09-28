@@ -278,7 +278,7 @@ void DLListAfter (DLList L, char *it)
  * if current was only item, current becomes null */
 void DLListDelete (DLList L)
 {
-    printf("%d",L->nitems);
+    printf("%zu",L->nitems);
 	assert (L != NULL);
 	struct DLListNode *temp = L->curr;
 	
