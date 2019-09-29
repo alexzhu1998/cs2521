@@ -117,7 +117,7 @@ void putDLList (FILE *out, DLList L)
     
 	for (DLListNode *curr = L->first; curr != NULL; curr = curr->next){
 		if (curr->next == NULL) {
-		    fprintf (out, "%s <-> NULL\n", curr->value);
+		    fprintf (out, "%s -> NULL\n", curr->value);
 		} else {
 		    fprintf (out, "%s <->", curr->value);
 		}
