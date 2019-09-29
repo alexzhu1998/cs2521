@@ -19,9 +19,11 @@ int main (void)
 	
 	printf("Test 2 Inserting before currentNode in empty DLList\n");
 	myList = newDLList();
+    printf("curr: %s, ", DLListCurrent(myList));
     printf("Length: %zu\n", DLListLength(myList));
     DLListBefore(myList, "Hello");    	
 	putDLList (stdout, myList);
+    printf("curr: %s, ", DLListCurrent(myList));
 	printf("Length: %zu\n", DLListLength(myList));
 	assert (validDLList (myList));
 	freeDLList (myList);
@@ -30,9 +32,11 @@ int main (void)
 	
 	printf("Test 3 Inserting after currentNode in empty DLList\n");
 	myList = newDLList();
+    printf("curr: %s, ", DLListCurrent(myList));
     printf("Length: %zu\n", DLListLength(myList));
     DLListAfter(myList, "Hello");    	
 	putDLList (stdout, myList);
+    printf("curr: %s, ", DLListCurrent(myList));
 	printf("Length: %zu\n", DLListLength(myList));
 	assert (validDLList (myList));
 	freeDLList (myList);
@@ -40,8 +44,11 @@ int main (void)
     //one node
     printf("Test 4 Inserting before first Node in a one node DLList\n");
     DLList oneNodeList = newDLList ();
-    DLListAfter(myList, "Hello");
-     
+    printf("curr: %s, ", DLListCurrent(oneNodeList));
+    printf("Length: %zu\n", DLListLength(oneNodeList));
+    DLListAfter(oneNodeList, "Hello");
+    printf("curr: %s, ", DLListCurrent(oneNodeList));
+    printf("Length: %zu\n", DLListLength(oneNodeList));
     putDLList (stdout, oneNodeList);
 	assert (validDLList (oneNodeList));
 	freeDLList (oneNodeList);

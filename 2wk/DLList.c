@@ -110,8 +110,18 @@ void putDLList (FILE *out, DLList L)
 {
 	assert (out != NULL);
 	assert (L != NULL);
-	for (DLListNode *curr = L->first; curr != NULL; curr = curr->next)
-		fprintf (out, "%s\n", curr->value);
+    
+    if (L->first == NULL) {
+        fprintf (out, "NULL\n");
+    }
+    
+	for (DLListNode *curr = L->first; curr != NULL; curr = curr->next){
+		if (curr->next == NULL) {
+		    fprintf (out, "%s <-> NULL\n", curr->value);
+		} else {
+		    fprintf (out, "%s <->", curr->value);
+		}
+	}
 }
 
 /** Check internal consistency of a DLList. */
