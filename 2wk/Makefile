@@ -1,6 +1,6 @@
 # COMP2521 19t1 ... lab 02 makefile
-#CC	= 2521 3c
-CC	= gcc -Wall -Werror -std=gnu11 -g
+CC	= 2521 3c
+#CC	= gcc -Wall -Werror -std=gnu11 -g
 
 .PHONY: all
 all: testList myed
