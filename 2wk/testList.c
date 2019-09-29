@@ -22,16 +22,29 @@ int main (void)
     printf("Length: %zu\n", DLListLength(myList));
     DLListBefore(myList, "Hello");    	
 	putDLList (stdout, myList);
+	printf("Length: %zu\n", DLListLength(myList));
+	assert (validDLList (myList));
+	freeDLList (myList);
+	
+	
+	
+	printf("Test 3 Inserting after currentNode in empty DLList\n");
+	myList = newDLList();
+    printf("Length: %zu\n", DLListLength(myList));
+    DLListAfter(myList, "Hello");    	
+	putDLList (stdout, myList);
+	printf("Length: %zu\n", DLListLength(myList));
 	assert (validDLList (myList));
 	freeDLList (myList);
 	
     //one node
-    /*
+    printf("Test 4 Inserting before first Node in a one node DLList\n");
     DLList oneNodeList = newDLList ();
-    
+    DLListAfter(myList, "Hello");
+     
     putDLList (stdout, oneNodeList);
 	assert (validDLList (oneNodeList));
 	freeDLList (oneNodeList);
-    */
+    
 	return EXIT_SUCCESS;
 }
