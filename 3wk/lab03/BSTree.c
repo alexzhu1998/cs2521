@@ -101,10 +101,12 @@ void BSTreeLevelOrder (BSTree t)
     Queue Q = newQueue();
     // start at root node
     BSTNode *currNode = t;
-    // if q
+    // put this current node into the queue
     QueueJoin(Q,currNode);
     while (!QueueIsEmpty(Q)) {
+        // take out the last node 
         currNode = QueueLeave(Q);
+        // and add the children node into the queue
         if (currNode->left != NULL) {
             QueueJoin(Q,currNode->left);
         }
