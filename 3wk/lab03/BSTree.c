@@ -95,9 +95,13 @@ void BSTreePostfix (BSTree t)
 void BSTreeLevelOrder (BSTree t)
 {
 	// TODO
+	// no node 
 	if (t == NULL) return;
+	// create new queue
     Queue Q = newQueue();
+    // start at root node
     BSTNode *currNode = t;
+    // if q
     QueueJoin(Q,currNode);
     while (!QueueIsEmpty(Q)) {
         currNode = QueueLeave(Q);
