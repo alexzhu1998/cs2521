@@ -1,7 +1,4 @@
-> this is
-a small file
-containing a few lines
-of boring text
+> this is <->a small file <->containing a few lines <->of boring text -> NULL
 > this is
 > > > > > this is
 > > > > > a small file
@@ -12,4 +9,7 @@ of boring text
 > > > > > a small file
 > > > > > containing a few lines
 > > > > > > > > (null)
-> > > > > > > > > > > 
+> > > abcd
+> > (null)
+> > dcba
+> > > > 
