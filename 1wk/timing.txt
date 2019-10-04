@@ -1,32 +1,32 @@
-Inpu    Ini      ial      Has  Number  AvgTime   AvgTime
-Size    Order    Duplica  es   ofRuns  foruseIn  Lis      forSor
-5000    random   10
-5000    sor      ed       10
-5000    reverse  10
-5000    random   10
-5000    sor      ed       10
-5000    reverse  10
-10000   random   10
-10000   sor      ed       10
-10000   reverse  10
-10000   random   10
-10000   sor      ed       10
-10000   reverse  10
-20000   random   10
-20000   sor      ed       10
-20000   reverse  10
-20000   random   10
-20000   sor      ed       10
-20000   reverse  10
-50000   random   10
-50000   sor      ed       10
-50000   reverse  10
-50000   random   10
-50000   sor      ed       10
-50000   reverse  10
-100000  random   10
-100000  sor      ed       10
-100000  reverse  10
-100000  random   10
-100000  sor      ed       10
-100000  reverse  10
+Input   Initial  Has         Number  AvgTime        AvgTime
+Size    Order    Duplicates  ofRuns  foruseIntList  forSort
+5000    random   no          10      .072           .002
+5000    sorted   no          10      .007           .001
+5000    reverse  no          10      .007           .002
+5000    random   yes         10      .072           .002
+5000    sorted   yes         10      .007           .001
+5000    reverse  yes         10      .009           .002
+10000   random   no          10      .298           .004
+10000   sorted   no          10      .012           .002
+10000   reverse  no          10      .010           .002
+10000   random   yes         10      .329           .004
+10000   sorted   yes         10      .014           .002
+10000   reverse  yes         10      .014           .002
+20000   random   no          10      1.548          .009
+20000   sorted   no          10      .023           .004
+20000   reverse  no          10      .027           .004
+20000   random   yes         10      1.552          .008
+20000   sorted   yes         10      .019           .003
+20000   reverse  yes         10      .020           .003
+50000   random   no          10      10.931         .022
+50000   sorted   no          10      .045           .008
+50000   reverse  no          10      .047           .010
+50000   random   yes         10      10.719         .023
+50000   sorted   yes         10      .045           .008
+50000   reverse  yes         10      .045           .009
+100000  random   no          10      67.145         .049
+100000  sorted   no          10      .093           .020
+100000  reverse  no          10      .090           .021
+100000  random   yes         10      63.434         .048
+100000  sorted   yes         10      .094           .021
+100000  reverse  yes         10      .091           .021
