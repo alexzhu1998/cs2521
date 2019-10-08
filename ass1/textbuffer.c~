@@ -12,18 +12,14 @@
 
 typedef struct TBNode {
     char *value;
-    struct TBNode *prev;
     struct TBNode *next;
 } TBNode;
 
 struct textbuffer {
-    int nitems;
     TBNode *first;
-    TBNode *curr;
     TBNode *last;
 };
 
-/*
 char *strDup(const char *string) {
     if (string == NULL) return NULL;
     // Space for length plus null
@@ -34,40 +30,18 @@ char *strDup(const char *string) {
     strcpy(dest, string);                   
     // Return the new string
     return dest;                            
-}*/
+}
 
 /**
  * Allocate a new textbuffer whose contents is initialised with the text
  * in the given string.
  */
- 
-void newNodefoo (TB tb, char *text){
-    
-    if (text == NULL) return;
-    //malloc the node
-    TBNode *newNode = malloc(sizeof(*newNode));
-    //malloc the array
-    newNode->value = malloc(strlen(text) + 1);
-    strcpy(newNode->value, text);
-    newNode->prev = newNode->next = NULL;
-    if (tb->first == NULL && tb->last == NULL){ 
-        //printf("hi1");
-        tb->first = newNode;
-        tb->last = newNode;
-    } else {
-        //printf("hi2");
-        tb->last->next = newNode;
-        tb->last = newNode;
-    }
-    
-} 
- 
 TB newTB (char *text) {
 
     struct textbuffer *new = malloc(sizeof(*new));
-    if (new == NULL) err(EX_OSERR, "couldn't allocate DLList");
     new->first = new->last = NULL;
-        
+    if (new == NULL) err(EX_OSERR, "couldn't allocate DLList");
+    
 //    char *ptr = strstr(text, "\n");
     int i, j;
     int prevI = 0;
@@ -82,7 +56,21 @@ TB newTB (char *text) {
             temp[j] = '\0';
             prevI = i;
             
-            newNodefoo(new, temp);
+            TBNode *newNode = malloc(sizeof(*newNode));
+            newNode->value = malloc(strlen(temp) + 1);
+            strcpy(newNode->value, temp);
+            newNode->next = NULL;
+
+            if (new->first == NULL && new->last == NULL){ 
+                //printf("hi1");
+                new->first = newNode;
+                new->last = newNode;
+            } else {
+                //printf("hi2");
+                new->last->next = newNode;
+                new->last = newNode;
+            }
+            
             
         }
         free(temp);
@@ -96,23 +84,19 @@ TB newTB (char *text) {
  * access the buffer afterwards.
  */
 void releaseTB (TB tb) {
-
     if (tb == NULL) return;
-    
     if (tb->first == NULL && tb->last == NULL) {
         free(tb);
     } else {
-        
         TBNode *curr = tb->first;
-        //printf("%s", tb->first->next->next->next->value);
-        
         while (curr != NULL) {
-            if (curr->value != NULL) free(curr->value);
-            //TBNode *tmp = curr;
+            if (curr->value != NULL) {
+                free(curr->value);
+            }
+            TBNode *tmp = curr;
             curr = curr->next;
-            //free(tmp);
+            free(tmp);
         }
-        
         free(tb);
     }
     
