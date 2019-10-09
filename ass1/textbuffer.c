@@ -52,11 +52,11 @@ void newNodefoo (TB tb, char *text){
     newNode->prev = newNode->next = NULL;
     if (tb->first == NULL && tb->last == NULL){ 
         //printf("hi1");
-        tb->first = newNode;
-        tb->last = newNode;
+        tb->first = tb->last = newNode;
     } else {
         //printf("hi2");
         tb->last->next = newNode;
+        newNode->prev = tb->last;
         tb->last = newNode;
     }
     
@@ -96,7 +96,6 @@ TB newTB (char *text) {
  * access the buffer afterwards.
  */
 void releaseTB (TB tb) {
-
     if (tb == NULL) return;
     
     if (tb->first == NULL && tb->last == NULL) {
@@ -107,14 +106,16 @@ void releaseTB (TB tb) {
         //printf("%s", tb->first->next->next->next->value);
         
         while (curr != NULL) {
+            printf("%s", curr->value);
             if (curr->value != NULL) free(curr->value);
-            //TBNode *tmp = curr;
+            TBNode *tmp = curr;
             curr = curr->next;
-            //free(tmp);
+            free(tmp);
         }
         
         free(tb);
     }
+    
     
 }
 

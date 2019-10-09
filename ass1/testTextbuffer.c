@@ -36,9 +36,12 @@ static void testNewTB(void) {
 	assert(linesTB(tb1) == 4);
 	char *text1 = dumpTB(tb1, false); // Don't show line numbers
 	printf("%s", text1);
+	printf("=====\n");
 	assert(strcmp("hello there,\nhow\nare\nthings\n", text1) == 0);
+	
 	free(text1);
-	releaseTB(tb1);
+
+	//releaseTB(tb1);
 	
 	// TODO: Add more tests
 	
