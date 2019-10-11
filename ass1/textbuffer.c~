@@ -9,17 +9,24 @@
 #include "textbuffer.h"
 //valgrind --track-origins=yes --leak-check=full ./testTextbuffer
 //gcc -Wall -Werror -std=c11 -O -lm -o testTextbuffer testTextbuffer.c textbuffer.c
+//// this allows valgrind to check which line has memory leaks
+//gcc -ggdb3 
 
 typedef struct TBNode {
     char *value;
+    struct TBNode *prev;
     struct TBNode *next;
 } TBNode;
 
 struct textbuffer {
+    int totalChar;
+    int nitems;
     TBNode *first;
+    TBNode *curr;
     TBNode *last;
 };
 
+/*
 char *strDup(const char *string) {
     if (string == NULL) return NULL;
     // Space for length plus null
@@ -30,51 +37,66 @@ char *strDup(const char *string) {
     strcpy(dest, string);                   
     // Return the new string
     return dest;                            
-}
+}*/
 
 /**
  * Allocate a new textbuffer whose contents is initialised with the text
  * in the given string.
  */
+ 
+void newNodefoo (TB tb, char *text){
+    
+    if (text == NULL) return;
+    //malloc the node
+    TBNode *newNode = malloc(sizeof(*newNode));
+    assert(newNode != NULL);
+    //malloc the array
+    newNode->value = malloc(strlen(text) + 1);
+    assert(newNode->value != NULL);
+    strcpy(newNode->value, text);
+    newNode->prev = newNode->next = NULL;
+    
+    
+    if (tb->first == NULL && tb->last == NULL){ 
+        //printf("hi1");
+        tb->first = tb->last = newNode;
+    } else {
+        //printf("hi2");
+        tb->last->next = newNode;
+        newNode->prev = tb->last;
+        tb->last = newNode;
+        tb->last->next = NULL;
+        /*
+        printf ("first = %s\n", tb->first->value);
+        printf ("first->next = %s\n", tb->first->next->value);
+        printf ("first->next->prev = %s\n", tb->first->next->prev->value);
+        printf ("last->prev = %s\n", tb->last->prev->value);
+        printf ("last->prev->next = %s\n", tb->last->prev->next->value);
+        printf ("last = %s\n", tb->last->value);
+        printf ("---\n");
+        */
+    }
+    
+} 
+ 
 TB newTB (char *text) {
 
     struct textbuffer *new = malloc(sizeof(*new));
+    if (new == NULL) err(EX_OSERR, "couldn't allocate textbuffer");
     new->first = new->last = NULL;
-    if (new == NULL) err(EX_OSERR, "couldn't allocate DLList");
-    
-//    char *ptr = strstr(text, "\n");
-    int i, j;
-    int prevI = 0;
-    for (i = 0; text[i] != '\0'; i++) {
-        char *temp = (char *) malloc (sizeof(char));
-        if (text[i] == '\n'){
-            for (j = 0; j < i-prevI; j++) {
-                if (text[j+prevI] == '\n') prevI++;
-                temp[j] = text[j+prevI];
-                //temp[j+1] = '\0'; 
-            }
-            temp[j] = '\0';
-            prevI = i;
-            
-            TBNode *newNode = malloc(sizeof(*newNode));
-            newNode->value = malloc(strlen(temp) + 1);
-            strcpy(newNode->value, temp);
-            newNode->next = NULL;
+    new->totalChar = strlen(text);
 
-            if (new->first == NULL && new->last == NULL){ 
-                //printf("hi1");
-                new->first = newNode;
-                new->last = newNode;
-            } else {
-                //printf("hi2");
-                new->last->next = newNode;
-                new->last = newNode;
-            }
-            
-            
-        }
-        free(temp);
+    char *temp = malloc(sizeof(char)*(strlen(text)+1));
+    strcpy(temp,text);
+    
+    char *res = strtok(temp, "\n"); 
+    while (res != NULL) {
+        newNodefoo(new, res);
+        res = strtok(NULL, "\n");
     }
+    
+    free(temp);
+    
     
 	return new;
 }
@@ -85,22 +107,28 @@ TB newTB (char *text) {
  */
 void releaseTB (TB tb) {
     if (tb == NULL) return;
+    
     if (tb->first == NULL && tb->last == NULL) {
         free(tb);
     } else {
+        
         TBNode *curr = tb->first;
+        
         while (curr != NULL) {
-            if (curr->value != NULL) {
-                free(curr->value);
-            }
+            if (curr->value != NULL) free(curr->value);
             TBNode *tmp = curr;
             curr = curr->next;
             free(tmp);
+            
+            
         }
+        
         free(tb);
     }
     
+    
 }
+
 
 /**
  * Allocate  and return a string containing all of the text in the given
@@ -112,10 +140,12 @@ char *dumpTB (TB tb, bool showLineNumbers) {
     if (tb->first == NULL && tb->last == NULL) { 
         return NULL;
     } else {
-        char *textArray = malloc(sizeof(*textArray));
+        char *textArray = malloc(sizeof(char)*(tb->totalChar+1));
+        textArray[0] = '\0';
 	    if (showLineNumbers) {
 	        printf("show line numbers");
 	    } else {
+	        /*
 	        int textLen = 0;
             TBNode *curr = tb->first;
             while (curr != NULL) {
@@ -131,6 +161,14 @@ char *dumpTB (TB tb, bool showLineNumbers) {
                 curr = curr->next;
             }
             textArray[textLen]='\0';
+            */
+            TBNode *curr = tb->first;
+            while (curr != NULL) {
+                strcat(textArray, curr->value);	
+		        strcat(textArray, "\n");
+		        curr = curr->next;
+		    }
+		    strcat(textArray, "\0");
 	    }
 	    //printf("Textarray is %s",textArray);
         //printf("\n");

@@ -85,26 +85,18 @@ TB newTB (char *text) {
     if (new == NULL) err(EX_OSERR, "couldn't allocate textbuffer");
     new->first = new->last = NULL;
     new->totalChar = strlen(text);
-//    char *ptr = strstr(text, "\n");
-    int i, j;
-    int prevI = 0;
+
+    char *temp = malloc(sizeof(char)*(strlen(text)+1));
+    strcpy(temp,text);
     
-    for (i = 0; text[i] != '\0'; i++) {
-        char *temp = malloc(strlen(text)+1);
-        if (text[i] == '\n'){
-            for (j = 0; j < i-prevI; j++) {
-                if (text[j+prevI] == '\n') prevI++;
-                temp[j] = text[j+prevI];
-                //temp[j+1] = '\0'; 
-            }
-            temp[j] = '\0';
-            prevI = i;
-            
-            newNodefoo(new, temp);
-            
-        }
-        free(temp);
+    char *res = strtok(temp, "\n"); 
+    while (res != NULL) {
+        newNodefoo(new, res);
+        res = strtok(NULL, "\n");
     }
+    
+    free(temp);
+    
     
 	return new;
 }
@@ -121,10 +113,8 @@ void releaseTB (TB tb) {
     } else {
         
         TBNode *curr = tb->first;
-        //printf("%s", tb->first->next->next->next->value);
         
         while (curr != NULL) {
-            //printf("%s", curr->value);
             if (curr->value != NULL) free(curr->value);
             TBNode *tmp = curr;
             curr = curr->next;
@@ -150,28 +140,11 @@ char *dumpTB (TB tb, bool showLineNumbers) {
     if (tb->first == NULL && tb->last == NULL) { 
         return NULL;
     } else {
-        char *textArray = malloc(tb->totalChar+1);
+        char *textArray = malloc(sizeof(char)*(tb->totalChar+1));
         textArray[0] = '\0';
 	    if (showLineNumbers) {
 	        printf("show line numbers");
 	    } else {
-	        /*
-	        int textLen = 0;
-            TBNode *curr = tb->first;
-            while (curr != NULL) {
-                for (int i = 0; i < strlen(curr->value); i++) {
-                    textArray[i+textLen] = curr->value[i];
-                    //printf("%c", curr->value[i]);
-                    if (i+1 == strlen(curr->value)) {
-                        textLen++;
-                        textArray[i+textLen] = '\n';
-                    }
-                }
-                textLen += strlen(curr->value);
-                curr = curr->next;
-            }
-            textArray[textLen]='\0';
-            */
             TBNode *curr = tb->first;
             while (curr != NULL) {
                 strcat(textArray, curr->value);	
@@ -180,8 +153,6 @@ char *dumpTB (TB tb, bool showLineNumbers) {
 		    }
 		    strcat(textArray, "\0");
 	    }
-	    //printf("Textarray is %s",textArray);
-        //printf("\n");
 	    return textArray;
 	}
 	return NULL;
