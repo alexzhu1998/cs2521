@@ -9,8 +9,6 @@
 #include "textbuffer.h"
 //valgrind --track-origins=yes --leak-check=full ./testTextbuffer
 //gcc -Wall -Werror -std=c11 -O -lm -o testTextbuffer testTextbuffer.c textbuffer.c
-//// this allows valgrind to check which line has memory leaks
-//gcc -ggdb3 
 
 typedef struct TBNode {
     char *value;
@@ -49,10 +47,8 @@ void newNodefoo (TB tb, char *text){
     if (text == NULL) return;
     //malloc the node
     TBNode *newNode = malloc(sizeof(*newNode));
-    assert(newNode != NULL);
     //malloc the array
     newNode->value = malloc(strlen(text) + 1);
-    assert(newNode->value != NULL);
     strcpy(newNode->value, text);
     newNode->prev = newNode->next = NULL;
     
@@ -82,7 +78,7 @@ void newNodefoo (TB tb, char *text){
 TB newTB (char *text) {
 
     struct textbuffer *new = malloc(sizeof(*new));
-    if (new == NULL) err(EX_OSERR, "couldn't allocate textbuffer");
+    if (new == NULL) err(EX_OSERR, "couldn't allocate DLList");
     new->first = new->last = NULL;
     new->totalChar = strlen(text);
 //    char *ptr = strstr(text, "\n");
