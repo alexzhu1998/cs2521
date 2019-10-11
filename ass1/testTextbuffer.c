@@ -32,12 +32,15 @@ static void testNewTB(void) {
 	
 	// Calling dumpTB immediately after newTB, without modifying the TB
 	TB tb1 = newTB("hello there,\nhow\nare\nthings\n");
-	printf("%d",linesTB(tb1));
+	//printf("%d",linesTB(tb1));
 	assert(linesTB(tb1) == 4);
 	char *text1 = dumpTB(tb1, false); // Don't show line numbers
-	printf("%s", text1);
+	//printf("%s", text1);
+	//printf("=====\n");
 	assert(strcmp("hello there,\nhow\nare\nthings\n", text1) == 0);
+	
 	free(text1);
+
 	releaseTB(tb1);
 	
 	// TODO: Add more tests
