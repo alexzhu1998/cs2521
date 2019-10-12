@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
-#include <err.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 
 
 #include "textbuffer.h"
@@ -19,7 +17,7 @@ typedef struct TBNode {
 } TBNode;
 
 struct textbuffer {
-    int totalChar;
+    size_t totalChar; // dont forget to change this!!!
     int nitems;
     TBNode *first;
     TBNode *curr;
@@ -43,56 +41,56 @@ char *strDup(const char *string) {
  * Allocate a new textbuffer whose contents is initialised with the text
  * in the given string.
  */
+void errorAbort (char *text){
+    printf("%s\n",text);
+    abort();
+}
  
 void newNodefoo (TB tb, char *text){
     
     if (text == NULL) return;
     //malloc the node
     TBNode *newNode = malloc(sizeof(*newNode));
-    assert(newNode != NULL);
+    if (newNode == NULL) errorAbort("ERROR in newNodefoo");
     //malloc the array
-    newNode->value = malloc(strlen(text) + 1);
-    assert(newNode->value != NULL);
+    newNode->value = malloc(sizeof(char)*(strlen(text) + 1));
+    if (newNode == NULL) errorAbort("ERROR in newNodefoo");
     strcpy(newNode->value, text);
     newNode->prev = newNode->next = NULL;
     
-    
+    //linking the nodes in the textbuffer
     if (tb->first == NULL && tb->last == NULL){ 
-        //printf("hi1");
         tb->first = tb->last = newNode;
     } else {
-        //printf("hi2");
         tb->last->next = newNode;
         newNode->prev = tb->last;
         tb->last = newNode;
-        tb->last->next = NULL;
-        /*
-        printf ("first = %s\n", tb->first->value);
-        printf ("first->next = %s\n", tb->first->next->value);
-        printf ("first->next->prev = %s\n", tb->first->next->prev->value);
-        printf ("last->prev = %s\n", tb->last->prev->value);
-        printf ("last->prev->next = %s\n", tb->last->prev->next->value);
-        printf ("last = %s\n", tb->last->value);
-        printf ("---\n");
-        */
     }
     
 } 
  
 TB newTB (char *text) {
-
-    struct textbuffer *new = malloc(sizeof(*new));
-    if (new == NULL) err(EX_OSERR, "couldn't allocate textbuffer");
+    // allocating memory for textbuffer
+    TB new = malloc(sizeof(*new));
+    if (new == NULL) errorAbort("ERROR in newTB"); 
     new->first = new->last = NULL;
-    new->totalChar = strlen(text);
-
+    new->totalChar = sizeof(char)*strlen(text);
+    new->nitems = 0;
+    
+    //allocating memory for a writable file
     char *temp = malloc(sizeof(char)*(strlen(text)+1));
+    if (temp == NULL) abort();
     strcpy(temp,text);
     
     char *res = strtok(temp, "\n"); 
+    if (res == NULL) {
+        new->nitems++;
+        newNodefoo(new,"\n");    
+    }
     while (res != NULL) {
         newNodefoo(new, res);
         res = strtok(NULL, "\n");
+        new->nitems++;
     }
     
     free(temp);
@@ -120,7 +118,6 @@ void releaseTB (TB tb) {
             curr = curr->next;
             free(tmp);
             
-            
         }
         
         free(tb);
@@ -136,47 +133,62 @@ void releaseTB (TB tb) {
  * the line number.
  */
 char *dumpTB (TB tb, bool showLineNumbers) {
+
 	if (tb == NULL) return NULL;
     if (tb->first == NULL && tb->last == NULL) { 
         return NULL;
     } else {
-        char *textArray = malloc(sizeof(char)*(tb->totalChar+1));
-        textArray[0] = '\0';
+        // separating two cases for Line Numbers 
 	    if (showLineNumbers) {
-	        printf("show line numbers");
+	        //record exact memory required for digits and spaces
+	        int i;
+	        size_t totalSpaceDots = sizeof(". ")*tb->nitems;
+	        size_t totalDigits = 0;
+	        for (i = 1; i <= tb->nitems; i++) totalDigits += sizeof(i);
+	        size_t length;
+	        length = tb->totalChar+ totalSpaceDots+ totalDigits+ 1;
+	        char *textArray = malloc(length);
+            textArray[0] = '\0';
+
+	        i = 1;
+	        TBNode *curr = tb->first;
+            while (curr != NULL) {
+                //append number and dots before text
+                sprintf(textArray, "%s%d. ", textArray,i);
+                //concatenate from behind
+                strcat(textArray, curr->value);	
+		        strcat(textArray, "\n");
+		        curr = curr->next;
+		        i++;
+		    }
+		    strcat(textArray, "\0");
+		    
+		    return textArray;
+		    
 	    } else {
+	    
+	        char *textArray = malloc(tb->totalChar+1);
+	        textArray[0] = '\0';
             TBNode *curr = tb->first;
+            
             while (curr != NULL) {
                 strcat(textArray, curr->value);	
 		        strcat(textArray, "\n");
 		        curr = curr->next;
 		    }
 		    strcat(textArray, "\0");
+		    
+		    return textArray;
 	    }
-	    return textArray;
 	}
 	return NULL;
-	
 }
 
 /**
  * Return the number of lines of the given textbuffer.
  */
 int linesTB (TB tb) {
-	if (tb == NULL) return 0;
-	if (tb->first == NULL && tb->last == NULL) { 
-	    return 0;
-    } else {
-        TBNode *curr = tb->first;
-        int count = 0;
-        while (curr != NULL) {
-            curr = curr->next;
-            count++;
-        }
-        return count;
-    }
-	return 0; 
-	
+	return tb->nitems; 
 }
 
 /**
@@ -185,7 +197,33 @@ int linesTB (TB tb) {
  *   is out of range. The first line of a textbuffer is at position 1.
  */
 void addPrefixTB (TB tb, int from, int to, char *prefix) {
-
+    //if incorrect parameters, abort;
+    if (to < from || to < 0 || from < 0) 
+        errorAbort("ERROR in addPrefixTB");
+    if (prefix == NULL) errorAbort("ERROR in addPrefixTB");
+    if (prefix[0] == '\0') return;
+    
+    TBNode *curr = tb->first;
+    char *temp = malloc(sizeof(char)*((tb->totalChar)+1));
+    if (temp == NULL) errorAbort("ERROR in addPrefixTB");
+    temp[0] = '\0';
+    
+        
+    int i = 1;
+    while (curr != NULL && i <= to) {
+        // initiate temporary to concatenate curr->value to prefix
+        if (i >= from && i <= to) {
+            strcpy(temp, curr->value);
+            size_t length = strlen(prefix)+strlen(curr->value)+1;
+            curr->value = (char *)realloc(curr->value, length);
+            sprintf(curr->value, "%s%s", prefix, temp);
+            tb->totalChar += strlen(prefix);
+        }
+        i++;
+        curr = curr->next;
+    }
+    free(temp);
+    
 }
 
 /**
@@ -199,7 +237,51 @@ void addPrefixTB (TB tb, int from, int to, char *prefix) {
  *   range.
  */
 void mergeTB (TB tb1, int pos, TB tb2) {
-
+    if (pos > tb1->nitems+1 || pos < 1) errorAbort("ERROR in mergeTB");
+    if (tb1 == tb2) return;
+    if (tb2->first == NULL || tb2 == NULL) return;
+    
+    if (tb1 == NULL) {
+        tb1->first = tb2->first;
+        tb1->last = tb2->last;
+    } else {
+        if (pos == 1) {
+            // position number at the start
+            tb1->first->prev = tb2->last;
+            tb2->last->next = tb1->first;
+            tb1->first = tb2->first;
+        } else if (pos == tb1->nitems+1) {
+            // position number at the end
+            tb1->last->next = tb2->first;
+            tb2->first->prev = tb1->last;
+            tb1->last = tb2->last;  
+        } else {
+            // position number in the middle
+            TBNode *curr1 = tb1->first;
+            int i = 1;
+            while (curr1 != NULL) {
+                //moving curr in position
+                if (i == pos) {
+                    break;
+                }
+                i++;
+                curr1 = curr1->next;
+            }
+            //relinking
+            tb2->first->prev = curr1->prev;
+            tb2->last->next = curr1;
+            curr1->prev->next = tb2->first;
+            curr1->prev = tb2->last;
+        }
+    }
+    //changing tb1 nitems and totalChar
+    tb1->nitems += tb2->nitems;
+    tb1->totalChar += tb2->totalChar;
+    
+    //removing the ties of tb2
+    tb2->first = NULL;
+    tb2->last = NULL;
+    free(tb2);
 }
 
 /**
@@ -213,7 +295,13 @@ void mergeTB (TB tb1, int pos, TB tb2) {
  *   range.
  */
 void pasteTB (TB tb1, int pos, TB tb2) {
-
+    if (pos > tb1->nitems+1 || pos < 1) errorAbort("ERROR in pasteTB");
+    if (tb2->first == NULL || tb2 == NULL) return;
+    
+    char *tempText = dumpTB(tb2,false);
+    TB tbTemp = newTB(tempText);
+    free(tempText);
+    mergeTB(tb1,pos,tbTemp);
 }
 
 /**

@@ -4,7 +4,7 @@
 
 #include <stdbool.h>
 
-typedef struct textbuffer *TB;
+typedef struct textbuffer *TB; 
 
 typedef struct _matchNode {
 	int lineNumber;

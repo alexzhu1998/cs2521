@@ -87,5 +87,10 @@ int main (void) {
     }
     free(new);
     
+    
+    int k = 15;
+    
+    printf("%ld",sizeof(k));
+    
     return 0;
 }
