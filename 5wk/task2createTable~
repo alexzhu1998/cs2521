@@ -1,0 +1,5 @@
+#!/bin/sh
+
+filename="whateverFile"
+
+(sh task2runtests < $filename) 1> /dev/null 2> tmp

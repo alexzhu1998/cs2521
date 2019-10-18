@@ -1,0 +1,7 @@
+#!/bin/sh
+
+sh runtests > output
+
+echo "===== DIFFERENCE ======"
+diff output expected
+
