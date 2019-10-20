@@ -2,22 +2,59 @@ Results for Tests on 5000 values
 
 Depth = depth of tree, Cost = average #comparisons per search
 
+L = insert new values at the leaves (standard BST insert)
+A = insert new values at the root
+R = insert values by randomly choosing between L and A
+B = insert at leaves, but periodically rebalance the tree
+S = insert using the Splay Tree approach
+V = insert using the AVL Tree approach
 
-             Ascending Order        Prefix Order        Random Order
-Insert
-Method       Depth      Cost     Depth      Cost     Depth      Cost
-
-L         ________  ________  ________  ________  ________  ________
-
-A         ________  ________  ________  ________  ________  ________
-
-R         ________  ________  ________  ________  ________  ________
-
-B         ________  ________  ________  ________  ________  ________
-
-S         ________  ________  ________  ________  ________  ________
-
-V         ________  ________  ________  ________  ________  ________
+                 Ascending    Order        Prefix    Order        Random    Order
+Insert Method    Depth        Cost         Depth     Cost         Depth     Cost 
+L                5000         3114.4659    13        11.7500      28        15.9506
+A                5000         1886.5340    2954      1114.6681    28        16.2853
+R                2492         951.5022     1774      673.8361     27        15.1545
+B                206          62.5225      20        13.6440      23        13.0249
+S                5000         23.5964      5000      23.6084      31        22.7248
+V                13           11.7763      13        11.8337      15        11.6938
 
 
-Notes (what the above indicates):
+Notes (what the above indicates):   
+We can see that AVL Trees and Splay Trees are basically consistent in its runtime 
+for any of the three orders, because they are rebalanced. While periodic rebalancing 
+trees struggle for ascending order insertion but can achieve O(log(n)) cost for 
+every other order. And we will discuss why some insertion method struggle in specific
+order of insertions.
+
+A nice property of BST in general is that they thrive at searches given that the tree 
+is sufficiently "balanced", when inputing random order into leaves or at roots, it
+allows the tree to be "balanced" automatically. As long as the case is not a linked
+list structure with one straight chain, the binary tree property will ensure searches
+cost O(log(n)) time.
+
+Ascending Order insertion will cause both the L and A method to form a linked list
+structure, which will make the tree to be extremely inefficient, as evident in the 
+cost. Similarly, inserting randomly between L and A can only reduce the efficiency 
+by half but it is still never the less the same complexity, which is O(n). However,
+balanced binary search trees B, S and V have a O(log(n)) complexity as mentioned
+above.
+
+Prefix Order insertion will allow L to be inserted like a balanced tree exactly. For
+instance, 1234567 in prefix order is 4213657. Inserting it from leaves will form a 
+BST: 
+        4
+    2        6
+  1   3    5   7
+But inserting from root will be:
+        7
+      5
+   3    6
+ 1   4
+  2
+    
+This is because inserting from root for prefix order will always cause
+the largest value to be further away in terms of levels from the smallest
+value. Thus it results in very inefficient searches as the binary tree
+is not balanced. 
+
+

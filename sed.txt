@@ -1,0 +1,157 @@
+Command: cat text
+10 tiny toes
+this is that
+5 funny 0
+one two three
+tree twice
+
+Command: cat text | sed 's/t/T/'
+10 Tiny toes
+This is that
+5 funny 0
+one Two three
+Tree twice
+
+Command: sed 's/t/T/' text
+10 Tiny toes
+This is that
+5 funny 0
+one Two three
+Tree twice
+
+Command: cat text | sed 's/t/T/g'
+10 Tiny Toes
+This is ThaT
+5 funny 0
+one Two Three
+Tree Twice
+
+#^ carrot can search beginning only, and the letter that follows the ^
+Command: cat text | sed 's/^t/oooo/g'
+10 tiny toes
+oooohis is that
+5 funny 0
+one two three
+ooooree twice
+
+Command: cat text | sed 's/t$/oooo/g'
+10 tiny toes
+this is thaoooo
+5 funny 0
+one two three
+tree twice
+
+Command: cat text | sed 's/[0-9]/*/g'
+** tiny toes
+this is that
+* funny *
+one two three
+tree twice
+
+#& represents matched strigs
+Command: cat text | sed 's/[0-9]/(&)/g'
+(1)(0) tiny toes
+this is that
+(5) funny (0)
+one two three
+tree twice
+
+#two digits only
+Command: cat text | sed 's/[0-9][0-9]/(&)/g'
+(10) tiny toes
+this is that
+5 funny 0
+one two three
+tree twice
+
+#one or two digits, * represents any character
+Command: cat text | sed 's/[0-9][0-9]*/(&)/g'
+(10) tiny toes
+this is that
+(5) funny (0)
+one two three
+tree twice
+
+Command: cat text | sed 's/[0-9][0-9]*/(&)/g'
+(10) tiny toes
+this is that
+(5) funny (0)
+one two three
+tree twice
+
+#still works with delimiter _ instead of /
+Command: cat text | sed 's_[0-9][0-9]*_(&)_g'
+(10) tiny toes
+this is that
+(5) funny (0)
+one two three
+tree twice
+
+Command: cat text | sed 's/that/&/g'
+this is that
+
+Command: cat text | sed 's/\w*.//'
+tiny toes
+is that
+funny 0
+two three
+twice
+
+#\w is alphanumeric word only
+Command: cat text | sed 's/\w*$//'
+10 tiny
+this is
+5 funny
+one two
+tree 
+
+Command: cat text2 
+1 - this is a test
+2 - sdkjfh sdk
+3 - new slkdfjklsdj
+4 - iewjme
+
+6 - sdjfklsdj
+7 - test
+8 - newer new
+9 - NEW
+10 - NEWS newer
+
+Command: cat text2 | sed 's/new /old /g;s/new$/old/g'
+1 - this is a test
+2 - sdkjfh sdk
+3 - old slkdfjklsdj
+4 - iewjme
+
+6 - sdjfklsdj
+7 - test
+8 - newer old
+9 - NEW
+10 - NEWS newer
+
+#\b is boundary
+Command: cat text2 | sed 's/\bnew\b/old/g'
+1 - this is a test
+2 - sdkjfh sdk
+3 - old slkdfjklsdj
+4 - iewjme
+
+6 - sdjfklsdj
+7 - test
+8 - newer old
+9 - NEW
+10 - NEWS newer
+
+Command: cat text2 | sed 's/\bnew\b/old/Ig'
+1 - this is a test
+2 - sdkjfh sdk
+3 - old slkdfjklsdj
+4 - iewjme
+
+6 - sdjfklsdj
+7 - test
+8 - newer old
+9 - old
+10 - NEWS newer
+
+

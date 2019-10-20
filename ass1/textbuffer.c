@@ -5,10 +5,15 @@
 
 
 #include "textbuffer.h"
-//valgrind --track-origins=yes --leak-check=full ./testTextbuffer
+////README FILE
+////TO COMPILE RUN THIS LINE 
 //gcc -Wall -Werror -std=c11 -O -lm -o testTextbuffer testTextbuffer.c textbuffer.c
+////TO LEAK CHECK RUN THIS LINE
+//valgrind --track-origins=yes --leak-check=full ./testTextbuffer
+
 //// this allows valgrind to check which line has memory leaks
 //gcc -ggdb3 
+
 
 typedef struct TBNode {
     char *value;
@@ -305,7 +310,7 @@ void pasteTB (TB tb1, int pos, TB tb2) {
 }
 
 /**
- * Cut  the lines between and including 'from' and 'to' out of the given
+ * Cut the lines between and including 'from' and 'to' out of the given
  * textbuffer 'tb' into a new textbuffer.
  * - The result is a new textbuffer (much as one created with newTB()).
  * - The cut lines will be deleted from 'tb'.
@@ -313,16 +318,109 @@ void pasteTB (TB tb1, int pos, TB tb2) {
  *   is out of range.
  */
 TB cutTB (TB tb, int from, int to) {
-	return NULL;
+    if (to < from || to <= 0 || from <= 0 || to > tb->nitems) 
+        errorAbort("ERROR in cutTB boundary");
+    
+    printf("%d\n", tb->nitems);
+    printf("%ld\n",tb->totalChar);
+    
+    TBNode *curr = tb->first;
+    TBNode *fromNode = NULL;
+    TBNode *toNode = NULL;
+    
+    int i = 1;
+    while (curr != NULL && i <= to) {
+        if (i == from) {
+            fromNode = curr;
+        } 
+        if (i == to || i == tb->nitems) {
+            toNode = curr;
+            break;
+        }
+        curr = curr->next;
+        i++;
+    }
+    
+    printf("tb first %s\n", tb->first->value);
+    printf("tb last %s\n", tb->last->value);
+    /*
+    printf("i is %d\n", i);
+    assert(tb->last == toNode);
+    if (i == tb->nitems) {
+        assert(tb->last == toNode);
+    }*/
+    
+    TB tbNew = newTB("");
+    tbNew->first = fromNode;
+    tbNew->last = toNode;
+    //if from is the first item 
+    if (tb->first == fromNode) {
+        // if to is the last item
+        if (tb->last == toNode) {
+            tb->first = NULL;
+            tb->last = NULL;
+        } else {
+            tb->first = toNode->next;
+            toNode->next->prev = NULL;
+            toNode->next = NULL;
+        }
+        // if to is not the last item 
+    } else {
+        // if to is the last item, and from is not the last item 
+        if (tb->last == toNode) {
+            tb->last = fromNode->prev;
+            fromNode->prev->next = NULL;
+            fromNode->prev = NULL;
+        } else {
+            fromNode->prev->next = toNode->next;
+            toNode->next->prev = fromNode->prev;
+            fromNode->prev = NULL;
+            toNode->next = NULL;
+        }
+    }
+    
+    int tempItems = tb->nitems;
+    size_t tempChar = tb->totalChar;
+    
+    curr = tb->first;
+    tb->nitems = 0;
+    tb->totalChar = 0;
+    if (curr != NULL) {
+        while (curr!= NULL) {
+            tb->nitems ++;
+            tb->totalChar += strlen(curr->value);
+            curr = curr->next;
+        }
+    }
+    printf("tb first %s\n", tb->first->value);
+    printf("tb last %s\n", tb->last->value);
+    
+    tbNew->nitems = tempItems - tb->nitems;
+    tbNew->totalChar = tempChar - tb->totalChar;    
+    
+    printf("%d\n", tb->nitems);
+    printf("%d\n", tbNew->nitems);
+    printf("%ld\n",tb->totalChar);
+    printf("%ld\n",tbNew->totalChar);
+	return tbNew;
 }
 
 /**
- * Return  a  linked list of match nodes containing the positions of all
+ * Return a linked list of match nodes containing the positions of all
  * of the matches of string 'search' in 'tb'.
  * - The textbuffer 'tb' should remain unmodified.
  * - The user is responsible for freeing the returned list.
  */
 Match searchTB (TB tb, char *search) {
+    TBNode *curr = tb->first;
+    
+    while (curr != NULL) {
+        if (strcmp(curr->value, search) == 0) {
+            
+        
+        }
+        curr = curr->next;
+    }
 	return NULL;
 }
 

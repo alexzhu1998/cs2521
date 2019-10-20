@@ -57,8 +57,7 @@ static void testNewTB(void) {
 	printf("%s\n",text3);
 	free(text3);
 	//assert(linesTB(tb1) == 9);
-	releaseTB(tb1);
-	releaseTB(tb2);
+	
 	/*
 	// TODO: Add more tests
 	TB tb1 = newTB("dfgfd\nfdg\nsdf\n");
@@ -69,6 +68,20 @@ static void testNewTB(void) {
 	free(text3);
 	releaseTB(tb1);
 	*/
+	
+	TB tb3 = cutTB(tb1, 2, 9);
+	char *text4 = dumpTB(tb3, true);
+	printf("%s", text4);
+	free(text4);
+	printf("\n");
+	
+	char *text5 = dumpTB(tb1, true);
+	printf("%s\n",text5);
+	free(text5);
+	
+	releaseTB(tb1);
+	releaseTB(tb2);
+	releaseTB(tb3);
 	printf("newTB tests passed!\n");
 }
 

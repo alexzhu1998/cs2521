@@ -8,6 +8,7 @@ do
 	do
 		echo ""
 		echo "Test: ./tlab $size $order $insert"
+		#-v: doesnt contain
 		echo "t" | ./tlab $size $order $insert | grep -v Tree
 	done
 done

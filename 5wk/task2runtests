@@ -1,15 +1,55 @@
 #!/bin/sh
 
-size=200
+size=5000
 
-for insert in L A B R S V
+printf " \t Ascending \t Order \t Prefix \t Order \t Random \t Order\n\n" > Results2.txt
+printf "Insert Method \t Depth \t Cost \t Depth \t Cost \t Depth \t Cost \n" >> Results2.txt
+
+for insert in L A R B S V
 do
+    printf "$insert \t" >> Results2.txt
+    
 	for order in A P R
 	do
-		echo ""
-		echo "Test: ./tlab $size $order $insert"
-		echo "t" | ./tlab $size $order $insert | grep -v Tree
+	    
+		#echo ""
+		#echo "Test: ./tlab $size $order $insert"
+		(echo "t" | ./tlab $size $order $insert | grep -v Tree) 1> tmp 
+		(cat tmp | egrep "\#compares" | sed 's/.*#compares = //;s/,  #r.*//' | sed '=' | sed 'N; s/\n/Compare /') > tmp2
+		(cat tmp | egrep "Search" | sed 's/.*for //;s/ values.*//'| sed '=' | sed 'N; s/\n/Search /') > tmp3
+		(cat tmp | egrep "depth" | sed 's/.*depth = //;s/,  #comp.*//'| sed '=' | sed 'N; s/\n/Depth /') > tmp4
+		cmpBuilding=`cat tmp2 | egrep "1Compare" | sed 's/.*1Compare//'`
+		cmpSearch=`cat tmp2 | egrep "2Compare" | sed 's/.*2Compare//'`
+		searchFound=`cat tmp3 | egrep "1Search" | sed 's/.*1Search//'`
+		searchNotfound=`cat tmp3 | egrep "2Search" | sed 's/.*2Search//'`
+		depth=`cat tmp4 | egrep "1Depth" | sed 's/.*1Depth//'`
+		#echo $cmpBuilding
+		#echo $cmpSearch
+		#echo $searchFound
+		#echo $searchNotfound
+		#/($searchFound+$searchNotfound) 
+		cmp=$((cmpSearch-cmpBuilding))
+		search=$((searchFound + searchNotfound))
+		#echo $cmp
+		average=`echo "scale=4; $cmp / $search" | bc`
+		#echo $average
+		if [ $order = 'R' ]; then
+		    printf "$depth \t $average" >> Results2.txt
+	    else 
+	        printf "$depth \t $average \t" >> Results2.txt
+		fi
 	done
+	printf "\n" >> Results2.txt
 done
+
+(cat Results2.txt | sed 's/\t/|/g' | column -s '|' -t) > FinalResults.txt
+
+rm Results2.txt
+rm tmp
+rm tmp2
+rm tmp3
+rm tmp4
+
+
 
 
