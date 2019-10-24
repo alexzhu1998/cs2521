@@ -243,8 +243,12 @@ char *dumpTB (TB tb, bool showLineNumbers) {
         TBNode *curr = tb->first;
         while (curr != NULL) {
             //append number and dots before text
-            //strcat(textArray,i);
-            //strcat(textArray,". ");
+            char c = i + '0';
+            char arr[2];
+            arr[0] = c;
+            arr[1] = '\0';
+            strcat(textArray,arr);
+            strcat(textArray,". ");
             //sprintf(textArray, "%s%d. ", textArray,i);
             //concatenate from behind
             strcat(textArray, curr->value);	
