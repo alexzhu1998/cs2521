@@ -30,18 +30,6 @@ struct textbuffer {
     TBNode *last;
 };
 
-/*
-char *strDup(const char *string) {
-    if (string == NULL) return NULL;
-    // Space for length plus null
-    char *dest = malloc(strlen (string) + 1);
-    // No memory  
-    if (dest == NULL) return NULL;          
-    // Copy the characters
-    strcpy(dest, string);                   
-    // Return the new string
-    return dest;                            
-}*/
 
 void freeList (Match head) {
     if (head == NULL) return;
@@ -114,7 +102,21 @@ bool validTB (TB tb) {
 		errorAbort("");
 		return false;
 	}
-
+    
+    //checking number of characters are consistent
+    count = 0;
+    for (TBNode *curr = tb->first; curr != NULL; curr = curr->next) {
+        count += strlen(curr->value);
+        count += strlen("\n");
+    }
+    
+    if (count != tb->totalChar) {
+        printf("Total char count mismatch; counted=%zu, nitems=%ld\n",
+			count,
+			tb->totalChar);
+		errorAbort("");
+		return false;
+    }
 	// check scanning backward through list
 	count = 0;
 	for (TBNode *curr = tb->last; curr != NULL; curr = curr->prev)
@@ -134,10 +136,10 @@ bool validTB (TB tb) {
 void newNodefoo (TB tb, char *text){
     
     if (text == NULL) return;
-    //malloc the node
+    //allocate memory for the node
     TBNode *newNode = malloc(sizeof(*newNode));
     if (newNode == NULL) errorAbort("ERROR in newNodefoo");
-    //malloc the array
+    //allocate memory for the array
     newNode->value = malloc(sizeof(char)*(strlen(text) + 1));
     if (newNode == NULL) errorAbort("ERROR in newNodefoo");
     strcpy(newNode->value, text);
@@ -198,7 +200,7 @@ TB newTB (char *text) {
  * access the buffer afterwards.
  */
 void releaseTB (TB tb) {
-    assert(validTB(tb));
+    if (validTB(tb) == false) errorAbort("validTB error");
     
     if (tb->first == NULL && tb->last == NULL) {
         free(tb);
@@ -235,18 +237,20 @@ char *dumpTB (TB tb, bool showLineNumbers) {
         size_t totalDigits = 0;
         for (i = 1; i <= tb->nitems; i++) totalDigits += sizeof(i);
         size_t length;
-        length = tb->totalChar+ totalSpaceDots+ totalDigits+ 2;
+        length = tb->totalChar+ totalSpaceDots+ totalDigits + 2;
     	char *textArray = malloc(length);
         textArray[0] = '\0';
         
         i = 1;
         TBNode *curr = tb->first;
         while (curr != NULL) {
-            //append number and dots before text
+            //convert integer into characters
             char c = i + '0';
+            //convert characters into strings
             char arr[2];
             arr[0] = c;
             arr[1] = '\0';
+            //append number and dots before text
             strcat(textArray,arr);
             strcat(textArray,". ");
             //sprintf(textArray, "%s%d. ", textArray,i);
@@ -262,7 +266,7 @@ char *dumpTB (TB tb, bool showLineNumbers) {
 	    
     } else {
         TBNode *curr = tb->first;
-        // use +2 in case if \n is the only character in TB
+        // allocating +2 memory in case
         char *textArray = malloc(tb->totalChar+2);
         textArray[0] = '\0';
         
@@ -553,7 +557,8 @@ void deleteTB (TB tb, int from, int to) {
     TB garbageTB = cutTB(tb,from,to);
     releaseTB(garbageTB);
 }
-//insertChar should shift the current position of the array forward, such that there is enough space to place the text string into the spot
+
+//insertChar should shift the current position of the array forward, so that there is enough space to place the text string into the spot
 char* insertChar (int pos, char *string, char *insertString, bool replace) {
     size_t length;
     if (replace) {
@@ -561,20 +566,17 @@ char* insertChar (int pos, char *string, char *insertString, bool replace) {
     } else {
         length = strlen(string) + strlen(insertString) + 1;
     }
-    // +1 works??
+    // malloc +1 for null terminator
     char *textArray = malloc(sizeof(char) *(length+1));
     textArray[0] = '\0';
     int i = 0;
     
     for (i = 0; i < length; i++) {
         if (i >= pos && i < pos + strlen(insertString)) {
-            //printf("%c",insertString[i-pos]);
             textArray[i] = insertString[i-pos];
         } else if (i < pos) {
-            //printf("%c",string[i]);
             textArray[i] = string[i];
         } else if (i >= pos + strlen(insertString)) {
-            //printf("%c",string[i-pos-strlen(insertString)]);
             if (replace) {
                 textArray[i] = string[i-strlen(insertString)+1];
             } else {
@@ -587,29 +589,35 @@ char* insertChar (int pos, char *string, char *insertString, bool replace) {
     return textArray;
     
 }
-
-void strAppend (char *str, char* startStr, char* endStr, char* symb, int startPos, int endPos) {
+//strAppend is a function that uses insertChar function differently depending on the special symbols being used, if # is used, there will not be an ending # to be replaced
+void strAppend (
+    char *str, char* startBuffer, char* endBuffer,int startPos, int endPos
+) {
+    //inserting  starting pair <...> into the array
     char* temp;
-    temp = insertChar(startPos,str,startStr,1);
+    temp = insertChar(startPos,str,startBuffer,1);
     strcpy(str,temp);
     free(temp);
     
-    if (strcmp(endStr,"</h1>") == 0) {
+    //inserting  ending pair <...> into the array
+    if (strcmp(endBuffer,"</h1>") == 0) {
         endPos = strlen(str);
-        temp = insertChar(endPos,str,endStr,0);
+        temp = insertChar(endPos,str,endBuffer,0);
         strcpy(str,temp);
         free(temp);
     } else {
-        endPos += strlen(startStr) -1;
-        temp = insertChar(endPos,str,endStr,1);
+        endPos += strlen(startBuffer) -1;
+        temp = insertChar(endPos,str,endBuffer,1);
         strcpy(str,temp);
         free(temp);
     }
 }
 
+//function that takes in the textbuffer node and applies changes to the string it contains
 void applyRichText (TB tb, TBNode *node) {
     TBNode *curr = node;
     int i = 0;
+    
     while (i < strlen(curr->value)) {
         if (curr->value[i] == '#' && i == 0) {
             //string ended
@@ -618,23 +626,35 @@ void applyRichText (TB tb, TBNode *node) {
             // string didnt end, go to the end and insert <h1> and </h1> 
             } else {
                 int j = strlen(curr->value);
-                //printf("strlen curr->value before %ld\n", strlen(curr->value));
                 size_t newSLength = strlen(curr->value);
                 newSLength += strlen("<h1>") + strlen("</h1>") + 1;
                 curr->value = (char *)realloc(curr->value,newSLength);
                 
-                strAppend(curr->value,"<h1>", "</h1>", "#",i,j);
-                //printf("#i is %d\n",i);
-                //printf("#j is %d\n",j);
+                strAppend(curr->value,"<h1>", "</h1>",i,j);
+
                 tb->totalChar += strlen("<h1>") + strlen("</h1>") -1;  
                 
                 //special case breaks loop if this runs
                 break;
             }
-        } else if (curr->value[i] == '*') {
+        } else if (curr->value[i] == '*' || curr->value[i] == '_') {
+            char symbol;
+            char buffer1[5];
+            char buffer2[5];
+            
+            if (curr->value[i] == '*') {
+                symbol = '*';
+                strcpy(buffer1,"<b>");
+                strcpy(buffer2,"</b>");
+            } else {
+                symbol = '_';
+                strcpy(buffer1, "<i>");
+                strcpy(buffer2, "</i>");
+            }
+            
             int j = i + 1;
             for (j = i+1; j < strlen(curr->value); j++) {
-                if (curr->value[j] == '*') {
+                if (curr->value[j] == symbol) {
                     break;
                 }
             }
@@ -642,59 +662,23 @@ void applyRichText (TB tb, TBNode *node) {
             if (j == i + 1) {
                 i++;
             } else if (j == strlen(curr->value)) {
-                //printf("no more*\n");
                 i++;
             // there is a non consecutive asterix after i position
             } else {
                 size_t newSLength = strlen(curr->value);
-                newSLength += strlen("<b>") + strlen("</b>") + 1;
+                newSLength += strlen(buffer1) + strlen(buffer2) + 1;
                 curr->value = (char *)realloc(curr->value,newSLength);
                 
-                strAppend(curr->value,"<b>", "</b>", "*",i,j);
-                
-                tb->totalChar += strlen("<b>") + strlen("</b>") -2;
+                strAppend(curr->value,buffer1,buffer2, i,j);
+                // - 2 totalChar because * are replaced
+                tb->totalChar += strlen(buffer1) + strlen(buffer2) -2;
+                //jump to the character after next special symbol
                 i = j + 1;
             }
-            //printf("*i is %d\n",i);
-            //printf("*j is %d\n",j);
-            
-        } else if (curr->value[i] == '_') {
-            int j = i+1;
-            for (j = i+1; j < strlen(curr->value); j++) {
-                if (curr->value[j] == '_') {
-                    break;
-                }
-            }
-            if (j == i + 1) {
-                i++;
-            } else if (j == strlen(curr->value)) {
-                //printf("no more_\n");
-                i++;
-            // there is a non consecutive asterix after i position
-            } else {
-                size_t newSLength = strlen(curr->value);
-                newSLength += strlen("<i>") + strlen("</i>") + 1;
-                curr->value = (char *)realloc(curr->value,newSLength);
-                
-                strAppend(curr->value,"<i>", "</i>", "_",i,j);
-                
-                tb->totalChar += strlen("<i>") + strlen("</i>") -2;
-                i = j + 1;
-            }
-            
-            //printf("_i is %d\n",i);
-            //printf("_j is %d\n",j);
         } else {
             i++;
         }
     }
-    //printf("%s\n",curr->value);
-    
-    //printf("%d\n", node->columnNumber);
-    
-
-    
-    
 
 }
 
