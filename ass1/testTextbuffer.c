@@ -23,6 +23,7 @@ static void freeList(Match head);
 static void printList(Match head);
 static void testDeleteTB (void);
 static void testFormRichText (void);
+static void testDiffTB (void); 
 
 int main(void) {
 	
@@ -35,6 +36,7 @@ int main(void) {
 	testSearchTB();
 	testDeleteTB();
 	testFormRichText();
+	testDiffTB();
 	// TODO: Call more test functions
 	
 	
@@ -140,6 +142,21 @@ static void testDumpTB(void) {
 	free(text3);
 	free(text32);
 	releaseTB(tb3);
+	
+	printf("-----------------------------------------\n"
+           "             dumpTB tests                \n"
+           "  case: consecutive new line characters  \n"
+           "-----------------------------------------\n");
+	TB tb4 = newTB("abc\n\n\n\n\ncde\n");
+	assert(linesTB(tb4) == 6);
+	char* text4 = dumpTB(tb4,true);
+	assert(strcmp("1. abc\n2. \n3. \n4. \n5. \n6. cde\n",text4)==0);
+    char* text42 = dumpTB(tb4,false);
+	assert(strcmp("abc\n\n\n\n\ncde\n",text42)==0);
+	printf("PASSED\n");
+	free(text4);
+	free(text42);
+	releaseTB(tb4);
 }
 
 static void testAddPrefixTB(void) {
@@ -733,7 +750,7 @@ static void testFormRichText (void) {
 	       "-----------------------------------------\n");
 	       
 	TB tb1 = newTB("***hello**there**   ****** **x*,\n*ho*w\na*re* \nth*i*ng*s\n**\nab\n*__*\n*_*\n");
-	TB tb2 = newTB("#*some* _string_\n*some* _string*_\n##\n_ _\ndsfdf**\n_so*m*e_\nsome#string*once_again*\n* *\n");
+	TB tb2 = newTB("#*some* _string_\n*some* _string*_\n##\n_ _\ndsfdf**\n_so*m*e_\nsome#string*once_again*\n__* *\n");
 	//
 	//formRichText(tb1);
 	formRichText(tb1);
@@ -749,6 +766,34 @@ static void testFormRichText (void) {
 
 }
 
+
+static void testDiffTB (void) {
+    printf("-----------------------------------------\n"
+	       "              diffTB tests               \n"
+	       "            case: 4 lines TB             \n"
+	       "-----------------------------------------\n");
+	       
+	TB tb1 = newTB("\n\n\n\nsdfdsf\nsdf\naafb\n");    
+	
+	TB tb2 = newTB("\n\na\nbc\n\n\n\n\n\n\n");
+	char* text = dumpTB(tb2,true);
+	free(text);
+	char* diffText = diffTB(tb1,tb2); 
+	printf("%s\n",diffText);
+	free(diffText);
+	releaseTB(tb1);  
+	releaseTB(tb2);
+	/*
+	char *temp = malloc (100);
+	strcpy(temp,"abc\n\n");
+	char *res = strtok(temp, "\n");
+	if (res == NULL) {
+	    res = strtok(NULL, "\n");
+	    printf("%s\n", res);
+	}
+    printf("strtok %s\n", res);
+	free(temp);*/
+}
 	/*
 	
 	

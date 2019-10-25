@@ -24,7 +24,7 @@ typedef struct TBNode {
 } TBNode;
 
 struct textbuffer {
-    size_t totalChar; // dont forget to change this!!!
+    size_t totalChar; 
     int nitems;
     TBNode *first;
     TBNode *last;
@@ -110,8 +110,9 @@ bool validTB (TB tb) {
         count += strlen("\n");
     }
     
+    
     if (count != tb->totalChar) {
-        printf("Total char count mismatch; counted=%zu, nitems=%ld\n",
+        printf("Total char count mismatch; counted=%zu, totalChar=%ld\n",
 			count,
 			tb->totalChar);
 		errorAbort("");
@@ -153,6 +154,7 @@ void newNodefoo (TB tb, char *text){
         newNode->prev = tb->last;
         tb->last = newNode;
     }
+    tb->nitems++;
     
 } 
 
@@ -169,27 +171,29 @@ TB newTB (char *text) {
     new->totalChar = sizeof(char)*strlen(text);
     new->nitems = 0;
     
-    if (strcmp(text,"") == 0) {
-        return new; 
-    }
+    int i, j;
+    int prevI = 0;
     
-    //allocating memory for a writable file
-    char *temp = malloc(sizeof(char)*(strlen(text)+1));
-    if (temp == NULL) abort();
-    strcpy(temp,text);
-    
-    char *res = strtok(temp, "\n"); 
-    if (res == NULL) {
-        new->nitems++;
-        newNodefoo(new,"");    
+    for (i = 0; text[i] != '\0'; i++) {
+        char *temp = malloc(strlen(text)+1);
+        if (text[i] == '\n') {
+            for (j = 0; j < i-prevI; j++) {
+                if (text[j+prevI] == '\n') {
+                    prevI++;
+                }
+                if (text[j+prevI] != '\n'){
+                    temp[j] = text[j+prevI];
+                } else {
+                    break;
+                }
+            }
+            temp[j] = '\0';
+            prevI = i;
+            
+            newNodefoo(new, temp);
+        }
+        free(temp);
     }
-    while (res != NULL) {
-        newNodefoo(new, res);
-        res = strtok(NULL, "\n");
-        new->nitems++;
-    }
-    
-    free(temp);
     
     
 	return new;
@@ -244,19 +248,21 @@ char *dumpTB (TB tb, bool showLineNumbers) {
         i = 1;
         TBNode *curr = tb->first;
         while (curr != NULL) {
-            //convert integer into characters
-            char c = i + '0';
-            //convert characters into strings
-            char arr[2];
-            arr[0] = c;
-            arr[1] = '\0';
-            //append number and dots before text
-            strcat(textArray,arr);
-            strcat(textArray,". ");
-            //sprintf(textArray, "%s%d. ", textArray,i);
-            //concatenate from behind
+            //initiate a variable for converting numbers into strings
+            char *numberText = malloc(totalDigits);
+            
+            //paste into integers
+            sprintf(numberText, "%d",i);
+            strcat(numberText,". ");
+
+            //append number and dots 
+            strcat(textArray,numberText);
+            
+            //append text
             strcat(textArray, curr->value);	
 	        strcat(textArray, "\n");
+	        
+	        free(numberText);
 	        curr = curr->next;
 	        i++;
 	    }
@@ -698,23 +704,82 @@ void formRichText (TB tb) {
 
 ////////////////////////////////////////////////////////////////////////
 // Bonus challenges
-//which lines of text are added or deletd from tb1 to tb2
+//which lines of text are added or deleted to get from tb1 to tb2
 char *diffTB (TB tb1, TB tb2) {
     TBNode *curr1 = tb1->first;
     TBNode *curr2 = tb2->first;
     // when i create curr1, curr1->value == NULL
-    if (
-        curr1->value == NULL || strcmp(curr1->value, "") == 0 
-        && !(curr2->value == NULL || strcmp(curr2->value, "") == 0)
-    ) {
-        
+    char *text = malloc(sizeof(*text));
+    text[0] = '\0';
+    int i = 1;
+    
+    while (curr1 != NULL && curr2 != NULL) {
+        if (strcmp(curr1->value,curr2->value) != 0) {
+            printf("curr1->value: %s\n", curr1->value);
+            printf("curr2->value: %s\n", curr2->value);
+            
+            size_t length = strlen(text) + strlen(curr1->value) + 
+                strlen(curr2->value) + strlen("+,\n-,\n")
+                + i + i+1 + 2;
+            text = (char *)realloc(text, length);
+            char *text2 = malloc(i);
+            char *text3 = malloc(i+1);
+            sprintf(text2,"%d",i);
+            sprintf(text3,"%d",i+1);            
+            
+            strcat(text,"+,");
+            strcat(text,text2);
+            strcat(text,",");
+            strcat(text,curr2->value);
+            strcat(text,"\n-,");
+            strcat(text,text3);
+            strcat(text,"\n");
+            
+            free(text2);
+            free(text3);
+        }
+        curr1 = curr1->next;
+        curr2 = curr2->next;
+        i++;
+    }
+    if (curr1 == NULL && curr2 != NULL) {
+        while (curr2 != NULL) {
+            size_t length = strlen(text) + strlen(curr2->value) +
+                strlen("+,,\n") + i + 1+ 2;
+            text = (char *)realloc(text, length);
+            //initiate a variable for converting numbers into strings
+            char *text2 = malloc(i);
+            sprintf(text2,"%d",i+1);
+            
+            strcat(text,"+,");
+            strcat(text,text2);
+            strcat(text,",");
+            strcat(text,curr2->value);
+            strcat(text,"\n");
+            
+            free(text2);
+            i++;
+            curr2 = curr2->next;
+        }
+    } else if (curr1 != NULL && curr2 == NULL) {
+        while (curr1 != NULL) {
+            size_t length = strlen(text) + strlen(curr1->value) +
+                strlen("-,,\n") + i + 2;
+            text = (char *)realloc(text, length);
+            char *text2 = malloc(i);
+            sprintf(text2,"%d",i+1);
+            
+            strcat(text,"-,");
+            strcat(text,text2);
+            strcat(text,"\n");
+            
+            free(text2);
+            i++;
+            curr1 = curr1->next;
+        }
     }
     
-    while (curr1 != NULL) {
-        
-    }
-    
-	return NULL;
+	return text;
 }
 
 void undoTB (TB tb) {
