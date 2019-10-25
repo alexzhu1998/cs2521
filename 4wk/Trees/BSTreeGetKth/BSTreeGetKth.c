@@ -5,6 +5,10 @@
 
 int BSTreeGetKth(BSTree t, int k) {
 	// TODO
-	return -42;
+
+	if (t == NULL) return 0;
+	// k = 0
+	
+	
 }
 

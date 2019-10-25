@@ -11,7 +11,6 @@ int main(void) {
 	
 	printf("Tree:\n");
 	printTree(t);
-	
 	bool result = TreeIsPerfectlyBalanced(t);
 	printf("TreeIsPerfectlyBalanced returned: %s\n",
 	       result ? "TRUE" : "FALSE");
