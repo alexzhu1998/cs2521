@@ -4,6 +4,17 @@
 // test  your  functions as you go. We will have our own testTexbuffer.c
 // for testing your submission.
 
+////README FILE
+////TO COMPILE RUN THIS LINE 
+//gcc -Wall -Werror -std=c11 -O -lm -o testTextbuffer testTextbuffer.c textbuffer.c
+//gcc -Wall -Werror -std=c11 -g -lm -o testTextbuffer testTextbuffer.c textbuffer.c
+
+////TO LEAK CHECK RUN THIS LINE
+//valgrind --track-origins=yes --leak-check=full ./testTextbuffer
+
+//// this allows valgrind to check which line has memory leaks
+//gcc -ggdb3 
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -24,6 +35,7 @@ static void printList(Match head);
 static void testDeleteTB (void);
 static void testFormRichText (void);
 static void testDiffTB (void); 
+static void testUndoTB (void);
 
 int main(void) {
 	
@@ -37,6 +49,7 @@ int main(void) {
 	testDeleteTB();
 	testFormRichText();
 	testDiffTB();
+	testUndoTB();
 	// TODO: Call more test functions
 	
 	
@@ -770,7 +783,7 @@ static void testFormRichText (void) {
 static void testDiffTB (void) {
     printf("-----------------------------------------\n"
 	       "              diffTB tests               \n"
-	       "            case: 4 lines TB             \n"
+	       "            case: n lines TB             \n"
 	       "-----------------------------------------\n");
 	       
 	TB tb1 = newTB("\n\n\n\nsdfdsf\nsdf\naafb\n");    
@@ -783,17 +796,19 @@ static void testDiffTB (void) {
 	free(diffText);
 	releaseTB(tb1);  
 	releaseTB(tb2);
-	/*
-	char *temp = malloc (100);
-	strcpy(temp,"abc\n\n");
-	char *res = strtok(temp, "\n");
-	if (res == NULL) {
-	    res = strtok(NULL, "\n");
-	    printf("%s\n", res);
-	}
-    printf("strtok %s\n", res);
-	free(temp);*/
 }
+
+static void testUndoTB (void) {
+    printf("-----------------------------------------\n"
+	       "              UndoTB tests               \n"
+	       "            case: n lines TB             \n"
+	       "-----------------------------------------\n");    
+    TB tb1 = newTB("\n\n\n\nsdfdsf\nsdf\naafb\n");
+    undoTB(tb1);
+    releaseTB(tb1);
+    
+}
+
 	/*
 	
 	

@@ -5,16 +5,6 @@
 
 
 #include "textbuffer.h"
-////README FILE
-////TO COMPILE RUN THIS LINE 
-//gcc -Wall -Werror -std=c11 -O -lm -o testTextbuffer testTextbuffer.c textbuffer.c
-//gcc -Wall -Werror -std=c11 -g -lm -o testTextbuffer testTextbuffer.c textbuffer.c
-
-////TO LEAK CHECK RUN THIS LINE
-//valgrind --track-origins=yes --leak-check=full ./testTextbuffer
-
-//// this allows valgrind to check which line has memory leaks
-//gcc -ggdb3 
 
 
 typedef struct TBNode {
@@ -30,7 +20,8 @@ struct textbuffer {
     TBNode *last;
 };
 
-
+////// START HELPER FUNCTIONS
+// frees a singly linked list - used for searchTB
 void freeList (Match head) {
     if (head == NULL) return;
     Match curr = head;
@@ -42,6 +33,7 @@ void freeList (Match head) {
     }
 }
 
+// prints a singly linked list - used for searchTB
 void printList (Match head) {
     if (head == NULL) return;
     for (Match curr = head; curr != NULL; curr = curr->next) {
@@ -50,14 +42,14 @@ void printList (Match head) {
     }   
 }
 
+// aborts whenever an invalid input was received
 void errorAbort (char *text){
     printf("%s\n",text);
     abort();
 }
 
 
-/** Checking for internal consistency of the TB
-*/
+// Checking for internal consistency of the TB
 bool validTB (TB tb) {
     if (tb == NULL) {
 		errorAbort("TB is NULL\n");
@@ -134,6 +126,7 @@ bool validTB (TB tb) {
 	return true;
 }
 
+//creates a new textbuffer node - used in newTB
 void newNodefoo (TB tb, char *text){
     
     if (text == NULL) return;
@@ -158,6 +151,134 @@ void newNodefoo (TB tb, char *text){
     
 } 
 
+
+//shift the current position of the array forward, so that there is enough space to place the text string into the spot - used in strAppend as part of a function in formRichText
+char* insertChar (int pos, char *string, char *insertString, bool replace) {
+    size_t length;
+    if (replace) {
+        length = strlen(string) + strlen(insertString);
+    } else {
+        length = strlen(string) + strlen(insertString) + 1;
+    }
+    // malloc +1 for null terminator
+    char *textArray = malloc(sizeof(char) *(length+1));
+    textArray[0] = '\0';
+    int i = 0;
+    
+    for (i = 0; i < length; i++) {
+        if (i >= pos && i < pos + strlen(insertString)) {
+            textArray[i] = insertString[i-pos];
+        } else if (i < pos) {
+            textArray[i] = string[i];
+        } else if (i >= pos + strlen(insertString)) {
+            if (replace) {
+                textArray[i] = string[i-strlen(insertString)+1];
+            } else {
+                textArray[i] = string[i-strlen(insertString)];
+            }
+        }
+    }
+    textArray[i] = '\0';
+    //printf("textArray %s\n", textArray);
+    return textArray;
+    
+}
+
+//use insertChar function differently depending on the special symbols being used, if # is used, there will not be an ending # to be replaced. The strAppend will be used in applyRichText as part of formRichText
+void strAppend (
+    char *str, char* startBuffer, char* endBuffer,int startPos, int endPos
+) {
+    //inserting  starting pair <...> into the array
+    char* temp;
+    temp = insertChar(startPos,str,startBuffer,1);
+    strcpy(str,temp);
+    free(temp);
+    
+    //inserting  ending pair <...> into the array
+    if (strcmp(endBuffer,"</h1>") == 0) {
+        endPos = strlen(str);
+        temp = insertChar(endPos,str,endBuffer,0);
+        strcpy(str,temp);
+        free(temp);
+    } else {
+        endPos += strlen(startBuffer) -1;
+        temp = insertChar(endPos,str,endBuffer,1);
+        strcpy(str,temp);
+        free(temp);
+    }
+}
+
+//function that takes in the textbuffer node and applies changes to the string it contains
+void applyRichText (TB tb, TBNode *node) {
+    TBNode *curr = node;
+    int i = 0;
+    
+    while (i < strlen(curr->value)) {
+        if (curr->value[i] == '#' && i == 0) {
+            //string ended
+            if (curr->value[i + 1] == '\0') {
+                i++;
+            // string didnt end, go to the end and insert <h1> and </h1> 
+            } else {
+                int j = strlen(curr->value);
+                size_t newSLength = strlen(curr->value);
+                newSLength += strlen("<h1>") + strlen("</h1>") + 1;
+                curr->value = (char *)realloc(curr->value,newSLength);
+                
+                strAppend(curr->value,"<h1>", "</h1>",i,j);
+
+                tb->totalChar += strlen("<h1>") + strlen("</h1>") -1;  
+                
+                //special case breaks loop if this runs
+                break;
+            }
+        } else if (curr->value[i] == '*' || curr->value[i] == '_') {
+            char symbol;
+            // 5 is the max length of <b> or </b> + 1
+            char buffer1[5];
+            char buffer2[5];
+            
+            if (curr->value[i] == '*') {
+                symbol = '*';
+                strcpy(buffer1,"<b>");
+                strcpy(buffer2,"</b>");
+            } else {
+                symbol = '_';
+                strcpy(buffer1, "<i>");
+                strcpy(buffer2, "</i>");
+            }
+            
+            int j = i + 1;
+            for (j = i+1; j < strlen(curr->value); j++) {
+                if (curr->value[j] == symbol) {
+                    break;
+                }
+            }
+            
+            if (j == i + 1) {
+                i++;
+            } else if (j == strlen(curr->value)) {
+                i++;
+            // there is a non consecutive asterix after i position
+            } else {
+                size_t newSLength = strlen(curr->value);
+                newSLength += strlen(buffer1) + strlen(buffer2) + 1;
+                curr->value = (char *)realloc(curr->value,newSLength);
+                
+                strAppend(curr->value,buffer1,buffer2, i,j);
+                // - 2 totalChar because * are replaced
+                tb->totalChar += strlen(buffer1) + strlen(buffer2) -2;
+                //jump to the character after next special symbol
+                i = j + 1;
+            }
+        } else {
+            i++;
+        }
+    }
+
+}
+
+//////END HELPER FUNCTIONS
 
 /**
  * Allocate a new textbuffer whose contents is initialised with the text
@@ -219,11 +340,8 @@ void releaseTB (TB tb) {
             free(tmp);
             
         }
-        
         free(tb);
     }
-    
-    
 }
 
 
@@ -312,7 +430,6 @@ void addPrefixTB (TB tb, int from, int to, char *prefix) {
     char *temp = malloc(sizeof(char)*((tb->totalChar)+1));
     if (temp == NULL) errorAbort("ERROR in addPrefixTB");
     temp[0] = '\0';
-    
         
     int i = 1;
     while (curr != NULL && i <= to) {
@@ -427,7 +544,7 @@ TB cutTB (TB tb, int from, int to) {
     TBNode *curr = tb->first;
     TBNode *fromNode = NULL;
     TBNode *toNode = NULL;
-    
+    // find position for from and to, and assign nodes on them 
     int i = 1;
     while (curr != NULL && i <= to) {
         if (i == from) {
@@ -470,7 +587,7 @@ TB cutTB (TB tb, int from, int to) {
             toNode->next = NULL;
         }
     }
-    
+    // changing the nitems and totalChar after removing list
     int tempItems = tb->nitems;
     size_t tempChar = tb->totalChar;
     
@@ -489,16 +606,6 @@ TB cutTB (TB tb, int from, int to) {
     
 	return tbNew;
 }
-
-/*
-typedef struct _matchNode {
-	int lineNumber;
-	int columnNumber;
-	struct _matchNode *next;
-} matchNode;
-
-typedef matchNode *Match;
-*/
 
 /**
  * Return a linked list of match nodes containing the positions of all
@@ -519,6 +626,7 @@ Match searchTB (TB tb, char *search) {
         free(head);
         return NULL;
     }
+    
     
     Match currNode = head;
     int lNum = 1;
@@ -564,129 +672,6 @@ void deleteTB (TB tb, int from, int to) {
     releaseTB(garbageTB);
 }
 
-//insertChar should shift the current position of the array forward, so that there is enough space to place the text string into the spot
-char* insertChar (int pos, char *string, char *insertString, bool replace) {
-    size_t length;
-    if (replace) {
-        length = strlen(string) + strlen(insertString);
-    } else {
-        length = strlen(string) + strlen(insertString) + 1;
-    }
-    // malloc +1 for null terminator
-    char *textArray = malloc(sizeof(char) *(length+1));
-    textArray[0] = '\0';
-    int i = 0;
-    
-    for (i = 0; i < length; i++) {
-        if (i >= pos && i < pos + strlen(insertString)) {
-            textArray[i] = insertString[i-pos];
-        } else if (i < pos) {
-            textArray[i] = string[i];
-        } else if (i >= pos + strlen(insertString)) {
-            if (replace) {
-                textArray[i] = string[i-strlen(insertString)+1];
-            } else {
-                textArray[i] = string[i-strlen(insertString)];
-            }
-        }
-    }
-    textArray[i] = '\0';
-    //printf("textArray %s\n", textArray);
-    return textArray;
-    
-}
-//strAppend is a function that uses insertChar function differently depending on the special symbols being used, if # is used, there will not be an ending # to be replaced
-void strAppend (
-    char *str, char* startBuffer, char* endBuffer,int startPos, int endPos
-) {
-    //inserting  starting pair <...> into the array
-    char* temp;
-    temp = insertChar(startPos,str,startBuffer,1);
-    strcpy(str,temp);
-    free(temp);
-    
-    //inserting  ending pair <...> into the array
-    if (strcmp(endBuffer,"</h1>") == 0) {
-        endPos = strlen(str);
-        temp = insertChar(endPos,str,endBuffer,0);
-        strcpy(str,temp);
-        free(temp);
-    } else {
-        endPos += strlen(startBuffer) -1;
-        temp = insertChar(endPos,str,endBuffer,1);
-        strcpy(str,temp);
-        free(temp);
-    }
-}
-
-//function that takes in the textbuffer node and applies changes to the string it contains
-void applyRichText (TB tb, TBNode *node) {
-    TBNode *curr = node;
-    int i = 0;
-    
-    while (i < strlen(curr->value)) {
-        if (curr->value[i] == '#' && i == 0) {
-            //string ended
-            if (curr->value[i + 1] == '\0') {
-                i++;
-            // string didnt end, go to the end and insert <h1> and </h1> 
-            } else {
-                int j = strlen(curr->value);
-                size_t newSLength = strlen(curr->value);
-                newSLength += strlen("<h1>") + strlen("</h1>") + 1;
-                curr->value = (char *)realloc(curr->value,newSLength);
-                
-                strAppend(curr->value,"<h1>", "</h1>",i,j);
-
-                tb->totalChar += strlen("<h1>") + strlen("</h1>") -1;  
-                
-                //special case breaks loop if this runs
-                break;
-            }
-        } else if (curr->value[i] == '*' || curr->value[i] == '_') {
-            char symbol;
-            char buffer1[5];
-            char buffer2[5];
-            
-            if (curr->value[i] == '*') {
-                symbol = '*';
-                strcpy(buffer1,"<b>");
-                strcpy(buffer2,"</b>");
-            } else {
-                symbol = '_';
-                strcpy(buffer1, "<i>");
-                strcpy(buffer2, "</i>");
-            }
-            
-            int j = i + 1;
-            for (j = i+1; j < strlen(curr->value); j++) {
-                if (curr->value[j] == symbol) {
-                    break;
-                }
-            }
-            
-            if (j == i + 1) {
-                i++;
-            } else if (j == strlen(curr->value)) {
-                i++;
-            // there is a non consecutive asterix after i position
-            } else {
-                size_t newSLength = strlen(curr->value);
-                newSLength += strlen(buffer1) + strlen(buffer2) + 1;
-                curr->value = (char *)realloc(curr->value,newSLength);
-                
-                strAppend(curr->value,buffer1,buffer2, i,j);
-                // - 2 totalChar because * are replaced
-                tb->totalChar += strlen(buffer1) + strlen(buffer2) -2;
-                //jump to the character after next special symbol
-                i = j + 1;
-            }
-        } else {
-            i++;
-        }
-    }
-
-}
 
 /**
  * Search  every  line of the given textbuffer for every occurrence of a
@@ -708,15 +693,14 @@ void formRichText (TB tb) {
 char *diffTB (TB tb1, TB tb2) {
     TBNode *curr1 = tb1->first;
     TBNode *curr2 = tb2->first;
-    // when i create curr1, curr1->value == NULL
+    
     char *text = malloc(sizeof(*text));
     text[0] = '\0';
     int i = 1;
     
+    //looping through both linked list, appending lines if different
     while (curr1 != NULL && curr2 != NULL) {
         if (strcmp(curr1->value,curr2->value) != 0) {
-            //printf("curr1->value: %s\n", curr1->value);
-            //printf("curr2->value: %s\n", curr2->value);
             
             size_t length = strlen(text) + strlen(curr1->value) + 
                 strlen(curr2->value) + strlen("+,\n-,\n")
@@ -742,6 +726,9 @@ char *diffTB (TB tb1, TB tb2) {
         curr2 = curr2->next;
         i++;
     }
+    /*** if first linked list hits NULL, loop through second linked list
+    **   and print through the second linked list with +'s
+    */
     if (curr1 == NULL && curr2 != NULL) {
         while (curr2 != NULL) {
             size_t length = strlen(text) + strlen(curr2->value) +
@@ -761,10 +748,13 @@ char *diffTB (TB tb1, TB tb2) {
             i++;
             curr2 = curr2->next;
         }
+    /*** if second linked list hits NULL, loop through first linked list
+    **   and print through the first linked list with -'s
+    */    
     } else if (curr1 != NULL && curr2 == NULL) {
         while (curr1 != NULL) {
             size_t length = strlen(text) + strlen(curr1->value) +
-                strlen("-,,\n") + i + 2;
+                strlen("-,\n") + i + 2;
             text = (char *)realloc(text, length);
             char *text2 = malloc(i);
             sprintf(text2,"%d",i+1);
@@ -783,7 +773,7 @@ char *diffTB (TB tb1, TB tb2) {
 }
 
 void undoTB (TB tb) {
-
+    // operations that can be undone: deleteTB, mergeTB, pasteTB, cutTB
 }
 
 void redoTB (TB tb) {
