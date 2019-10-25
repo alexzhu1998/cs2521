@@ -715,8 +715,8 @@ char *diffTB (TB tb1, TB tb2) {
     
     while (curr1 != NULL && curr2 != NULL) {
         if (strcmp(curr1->value,curr2->value) != 0) {
-            printf("curr1->value: %s\n", curr1->value);
-            printf("curr2->value: %s\n", curr2->value);
+            //printf("curr1->value: %s\n", curr1->value);
+            //printf("curr2->value: %s\n", curr2->value);
             
             size_t length = strlen(text) + strlen(curr1->value) + 
                 strlen(curr2->value) + strlen("+,\n-,\n")
