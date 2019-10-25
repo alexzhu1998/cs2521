@@ -698,8 +698,22 @@ void formRichText (TB tb) {
 
 ////////////////////////////////////////////////////////////////////////
 // Bonus challenges
-
+//which lines of text are added or deletd from tb1 to tb2
 char *diffTB (TB tb1, TB tb2) {
+    TBNode *curr1 = tb1->first;
+    TBNode *curr2 = tb2->first;
+    // when i create curr1, curr1->value == NULL
+    if (
+        curr1->value == NULL || strcmp(curr1->value, "") == 0 
+        && !(curr2->value == NULL || strcmp(curr2->value, "") == 0)
+    ) {
+        
+    }
+    
+    while (curr1 != NULL) {
+        
+    }
+    
 	return NULL;
 }
 
