@@ -66,11 +66,11 @@ int main (int argc, char **argv)
 	Graph graph = newGraph((size_t) maxURLs); // does graph contain all URLs?
 	Set seenSet = newSet();
 
-
+	showStack(toDoList);
 
 	while (!emptyStack(toDoList) && nVertices(graph) < (size_t) maxURLs) {
 	    char* nextURL = popFrom(toDoList);
-
+			showStack(toDoList);
 	    if (strstr(nextURL,"unsw") == NULL) continue;
 
 	    if (!(handle = url_fopen (firstURL, "r"))) {
