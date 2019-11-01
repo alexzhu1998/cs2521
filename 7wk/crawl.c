@@ -73,7 +73,7 @@ int main (int argc, char **argv)
 			// showStack(toDoList);
 	    if (strstr(nextURL,"unsw") == NULL) continue;
 
-	    if (!(handle = url_fopen (firstURL, "r"))) {
+	    if (!(handle = url_fopen (nextURL, "r"))) {
 		    fprintf (stderr, "Couldn't open %s\n", next);
 		    exit (1);
 	    }
@@ -91,8 +91,8 @@ int main (int argc, char **argv)
 		    while ((pos = GetNextURL (buffer, nextURL, result, pos)) > 0) {
 						printf ("Found: '%s'\n", result);
 	              if (nVertices(graph) < (size_t) maxURLs ||
-								!(isConnected(graph,result,nextURL))) {
-	                  addEdge(graph,result,nextURL);
+								(!(isElem(seenSet,nextURL)) && !(isElem(seenSet,result))) {
+	                  addEdge(graph,nextURL,result);
 	              }
 	              if (!isElem(seenSet,result)) {
 	                  insertInto(seenSet,result);
