@@ -71,7 +71,7 @@ int main (int argc, char **argv)
 	while (!emptyStack(toDoList) && nVertices(graph) < (size_t) maxURLs) {
 	    char* nextURL = popFrom(toDoList);
 
-	    if (strstr(nextURL,"unsw")!= NULL) continue;
+	    if (strstr(nextURL,"unsw") == NULL) continue;
 
 	    if (!(handle = url_fopen (firstURL, "r"))) {
 		    fprintf (stderr, "Couldn't open %s\n", next);
