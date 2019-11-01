@@ -91,7 +91,7 @@ int main (int argc, char **argv)
 		    while ((pos = GetNextURL (buffer, nextURL, result, pos)) > 0) {
 						printf ("Found: '%s'\n", result);
 	              if (nVertices(graph) < (size_t) maxURLs ||
-								(!(isElem(seenSet,nextURL)) && !(isElem(seenSet,result))) {
+								(!(isElem(seenSet,nextURL)) && !(isElem(seenSet,result)))) {
 	                  addEdge(graph,nextURL,result);
 	              }
 	              if (!isElem(seenSet,result)) {
