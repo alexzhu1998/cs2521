@@ -90,8 +90,10 @@ int main (int argc, char **argv)
 
 		    while ((pos = GetNextURL (buffer, nextURL, result, pos)) > 0) {
 						printf ("Found: '%s'\n", result);
-	              if (nVertices(graph) < (size_t) maxURLs ||
-								(!(isElem(seenSet,nextURL)) && !(isElem(seenSet,result)))) {
+	              if (
+										nVertices(graph) < (size_t) maxURLs ||
+										(!(isElem(seenSet,nextURL)) && !(isElem(seenSet,result)))
+								) {
 	                  addEdge(graph,nextURL,result);
 	              }
 	              if (!isElem(seenSet,result)) {
@@ -107,7 +109,7 @@ int main (int argc, char **argv)
 
 	}
 
-	showGraph(graph,1);
+	showGraph(graph,0);
 
 	dropStack(toDoList);
 	dropGraph(graph);
