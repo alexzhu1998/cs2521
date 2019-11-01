@@ -69,17 +69,18 @@ int main (int argc, char **argv)
 	// showStack(toDoList);
 
 	while (!emptyStack(toDoList) && nVertices(graph) < (size_t) maxURLs) {
+			// pop from next URL
 	    char* nextURL = popFrom(toDoList);
 			// showStack(toDoList);
+			// check if next URL contains unsw
 	    if (strstr(nextURL,"unsw") == NULL) continue;
-
+			//handle is opened URL
 	    if (!(handle = url_fopen (nextURL, "r"))) {
 		    fprintf (stderr, "Couldn't open %s\n", next);
 		    exit (1);
 	    }
-	    //handle is opened URL
-			// printf("%s\n",nextURL);
 
+			//opening the page, call it handle
 	    while (!url_feof (handle)) {
 				// showStack(toDoList);
 		    url_fgets (buffer, sizeof (buffer), handle);
