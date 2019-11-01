@@ -101,7 +101,7 @@ int main (int argc, char **argv)
 	    url_fclose (handle);
 	    sleep (1);
 	}
-	
+	free(firstURL);
 	dropStack(toDoList);
 	dropGraph(graph);
 	dropSet(seenSet);
