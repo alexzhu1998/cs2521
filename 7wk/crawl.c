@@ -81,6 +81,7 @@ int main (int argc, char **argv)
 
 
 	    while (!url_feof (handle)) {
+				showStack(toDoList);
 		    url_fgets (buffer, sizeof (buffer), handle);
 		    // fputs(buffer,stdout);
 		    int pos = 0;
@@ -99,6 +100,7 @@ int main (int argc, char **argv)
 	              }
 		    }
 	    }
+			showGraph(graph,1);
 			free(nextURL);
 	    url_fclose (handle);
 	    sleep (1);
