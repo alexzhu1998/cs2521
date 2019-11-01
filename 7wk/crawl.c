@@ -105,6 +105,8 @@ int main (int argc, char **argv)
 
 	}
 
+	showGraph(graph);
+
 	dropStack(toDoList);
 	dropGraph(graph);
 	dropSet(seenSet);
