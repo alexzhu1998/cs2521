@@ -78,7 +78,7 @@ int main (int argc, char **argv)
 		    exit (1);
 	    }
 	    //handle is opened URL
-			printf("%s\n",nextURL);
+			// printf("%s\n",nextURL);
 
 	    while (!url_feof (handle)) {
 				showStack(toDoList);
@@ -88,7 +88,7 @@ int main (int argc, char **argv)
 		    char result[BUFSIZE];
 		    memset (result, 0, BUFSIZE);
 
-		    while ((pos = GetNextURL (buffer, firstURL, result, pos)) > 0) {
+		    while ((pos = GetNextURL (buffer, nextURL, result, pos)) > 0) {
 						printf ("Found: '%s'\n", result);
 	              if (nVertices(graph) < (size_t) maxURLs ||
 								!(isConnected(graph,result,nextURL))) {
@@ -100,14 +100,14 @@ int main (int argc, char **argv)
 	              }
 		    }
 	    }
-			showGraph(graph,1);
+			// showGraph(graph,1);
 			free(nextURL);
 	    url_fclose (handle);
 	    sleep (1);
 
 	}
 
-	showGraph(graph,1);
+	// showGraph(graph,1);
 
 	dropStack(toDoList);
 	dropGraph(graph);
