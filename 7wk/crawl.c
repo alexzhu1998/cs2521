@@ -27,7 +27,6 @@ int main (int argc, char **argv)
 	char firstURL[BUFSIZE];
 	char next[BUFSIZE];
 	int maxURLs;
-	firstURL = malloc(sizeof(char)*BUFSIZE);
 
 	if (argc > 2) {
 		strcpy (baseURL, argv[1]);
@@ -103,7 +102,7 @@ int main (int argc, char **argv)
 	    url_fclose (handle);
 	    sleep (1);
 	}
-	free(firstURL);
+	free(nextURL);
 	dropStack(toDoList);
 	dropGraph(graph);
 	dropSet(seenSet);
