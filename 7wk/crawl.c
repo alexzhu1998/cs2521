@@ -88,7 +88,7 @@ int main (int argc, char **argv)
 		    char result[BUFSIZE];
 		    memset (result, 0, BUFSIZE);
 
-		    while ((pos = GetNextURL (buffer, firstURL, result, pos)) > 0) {
+		    while ((pos = GetNextURL (buffer, nextURL, result, pos)) > 0) {
 						printf ("Found: '%s'\n", result);
 	              if (nVertices(graph) < (size_t) maxURLs ||
 								!(isConnected(graph,result,nextURL))) {
