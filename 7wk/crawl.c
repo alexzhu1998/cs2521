@@ -27,6 +27,7 @@ int main (int argc, char **argv)
 	char firstURL[BUFSIZE];
 	char next[BUFSIZE];
 	int maxURLs;
+	firstURL = malloc(sizeof(char)*BUFSIZE);
 
 	if (argc > 2) {
 		strcpy (baseURL, argv[1]);
@@ -61,6 +62,7 @@ int main (int argc, char **argv)
 	//    sleep(1)
 	// }
 	Stack toDoList = newStack();
+
 	pushOnto(toDoList,firstURL);
 	Graph graph = newGraph((size_t) maxURLs); // does graph contain all URLs?
 	Set seenSet = newSet();
