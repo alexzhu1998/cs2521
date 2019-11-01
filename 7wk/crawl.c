@@ -94,7 +94,7 @@ int main (int argc, char **argv)
 								!(isConnected(graph,result,nextURL))) {
 	                  addEdge(graph,result,nextURL);
 	              }
-	              if (isElem(seenSet,result) != 0) {
+	              if (!isElem(seenSet,result)) {
 	                  insertInto(seenSet,result);
 	                  pushOnto(toDoList,result);
 	              }
