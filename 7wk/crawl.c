@@ -64,36 +64,37 @@ int main (int argc, char **argv)
 	pushOnto(toDoList,firstURL);
 	Graph graph = newGraph((size_t) maxURLs); // does graph contain all URLs?
 	Set seenSet = newSet();
-	
-	
-	
+
+
+
 	while (!emptyStack(toDoList) && nVertices(graph) < (size_t) maxURLs) {
 	    char* nextURL = popFrom(toDoList);
-	    
+
 	    if (strstr(nextURL,"UNSW")== NULL) break;
-	    
+
 	    if (!(handle = url_fopen (firstURL, "r"))) {
 		    fprintf (stderr, "Couldn't open %s\n", next);
 		    exit (1);
 	    }
 	    //handle is opened URL
-	    
-	    
+
+
 	    while (!url_feof (handle)) {
 		    url_fgets (buffer, sizeof (buffer), handle);
 		    // fputs(buffer,stdout);
 		    int pos = 0;
 		    char result[BUFSIZE];
 		    memset (result, 0, BUFSIZE);
-		    
+
 		    while ((pos = GetNextURL (buffer, firstURL, result, pos)) > 0) {
 			    printf ("Found: '%s'\n", result);
-                if (nVertices(graph) < (size_t) maxURLs) {
+                if (nVertices(graph) < (size_t) maxURLs ||
+								!(isConnected(graph,result,nextURL))) {
                     addEdge(graph,result,nextURL);
                 }
                 if (isElem(seenSet,result) != 0) {
                     insertInto(seenSet,result);
-                    pushOnto(toDoList,result); 
+                    pushOnto(toDoList,result);
                 }
 		    }
 	    }
