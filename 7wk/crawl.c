@@ -88,20 +88,21 @@ int main (int argc, char **argv)
 		    memset (result, 0, BUFSIZE);
 
 		    while ((pos = GetNextURL (buffer, firstURL, result, pos)) > 0) {
-			    printf ("Found: '%s'\n", result);
-                if (nVertices(graph) < (size_t) maxURLs ||
+						printf ("Found: '%s'\n", result);
+	              if (nVertices(graph) < (size_t) maxURLs ||
 								!(isConnected(graph,result,nextURL))) {
-                    addEdge(graph,result,nextURL);
-                }
-                if (isElem(seenSet,result) != 0) {
-                    insertInto(seenSet,result);
-                    pushOnto(toDoList,result);
-                }
+	                  addEdge(graph,result,nextURL);
+	              }
+	              if (isElem(seenSet,result) != 0) {
+	                  insertInto(seenSet,result);
+	                  pushOnto(toDoList,result);
+	              }
 		    }
 	    }
+			free(nextURL);
 	    url_fclose (handle);
 	    sleep (1);
-			free(nextURL);
+
 	}
 
 	dropStack(toDoList);
