@@ -105,7 +105,7 @@ int main (int argc, char **argv)
 
 	}
 
-	showGraph(graph);
+	showGraph(graph,1);
 
 	dropStack(toDoList);
 	dropGraph(graph);
