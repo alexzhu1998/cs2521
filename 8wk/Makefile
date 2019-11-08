@@ -1,6 +1,6 @@
 # COMP2521 19T1 ... lab 8
 
-CC	= 2521 3c
+CC	= gcc
 
 .PHONY: all
 all: travel

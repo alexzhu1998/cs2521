@@ -110,5 +110,57 @@ void showGraph (Graph g, char **names)
 int findPath (Graph g, Vertex src, Vertex dest, int max, int *path)
 {
 	assert (g != NULL);
-	return 0; // never find a path ... you need to fix this
+	Queue Q = newQueue();
+	// change path
+	// return length of the path
+	// if sum of weights is larger than what the plane can hold
+
+	// printf("path %d\n",*path);
+	// printf("src %d\n",src);
+	// initialise previous array
+	int previous[g->nV];
+	for (int i = 0; i < g->nV; i++) previous[i] = -1;
+	// initialise found
+	int found = 0;
+	previous[src] = src;
+
+	QueueJoin(Q,src);
+	while (QueueIsEmpty(Q) == 0 && found == 0) {
+		// showQueue(Q);
+		Vertex v = QueueLeave(Q);
+		if (v == dest) {
+			// printf("found dest %d\n", v);
+			found = 1;
+		} else {
+			for (Vertex w = 0; w < g->nV; w++) {
+				if (previous[w] == -1 && g->edges[v][w] != 0 && g->edges[v][w] < max) {
+					previous[w] = v;
+					QueueJoin(Q,w);
+				}
+			}
+		}
+	}
+
+	dropQueue(Q);
+	int dist = 0;
+	//copying from previous to path
+	if (found == 1) {
+		// printf("Start Check\n");
+		for (int i = dest; i != src; i = previous[i]) {
+				// printf("%d\n", i);
+				dist++;
+		}
+		dist++;
+		// printf("dist = %d\n", dist);
+		int i = dist - 1;
+		for (int j = dest; j != src; j = previous[j]) {
+			// printf("previous %d\n", previous[j]);
+			path[i] = j;
+			i--;
+		}
+		path[0] = src;
+	}
+
+
+	return dist; // never find a path ... you need to fix this
 }
