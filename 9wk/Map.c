@@ -143,6 +143,23 @@ static void addConnections (Map g)
 int connections (Map g, LocationID start, LocationID end, TransportID type[])
 {
 	assert (g != NULL);
-	// TODO: complete this fucntion
-	return 0;  // to keep the compiler happy
+	int count = 0;
+
+	for (VList n = g->connections[start]; n!= NULL; n = n->next){
+		if (n->v == end){
+			type[count] = n->type;
+			count++;
+		} else if (n->type == BOAT) {
+			int id = n->v;
+			for (VList m = g->connections[id]; m != NULL; m = m->next) {
+				if (m->v == end) {
+					type[count] = m->type;
+					count++;
+				}
+			}
+
+		}
+	}
+
+	return count;  // to keep the compiler happy
 }

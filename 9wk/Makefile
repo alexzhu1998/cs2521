@@ -1,7 +1,7 @@
 # COMP2521 19T1 ... lab 5
 
-CC	= 2521 3c
-
+CC	= gcc
+CFLAGS = -Werror
 .PHONY: all
 all: pl euro conn
 
