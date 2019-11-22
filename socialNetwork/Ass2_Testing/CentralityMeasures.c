@@ -34,10 +34,6 @@ NodeValues closenessCentrality(Graph g) {
 	nvs.numNodes = GraphNumVertices(g);
 	nvs.values = calloc(nvs.numNodes, sizeof(double));
 	
-	if (nvs.values == NULL) {
-		printf("Insufficient memory, abort\n");
-		abort();
-	}
 
 	// use Dijkstra to find shortest path from every node to every node.
 	for (int i = 0; i < nvs.numNodes; i++) {
@@ -74,11 +70,6 @@ NodeValues betweennessCentrality(Graph g) {
 	nvs.numNodes = GraphNumVertices(g);
 	nvs.values = calloc(nvs.numNodes, sizeof(double));
 
-	// No Memory
-	if (nvs.values == NULL) {
-		printf("Insufficient Memory, abort");
-		abort();
-	}
 	// use dijkstra to give the heads of the shortest path for destination j
 	// if the predecessor nodes contain an element other than i or src
 	// then its important
