@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "string_view": "c"
+    },
+    "editor.rulers": [80,80]
+}

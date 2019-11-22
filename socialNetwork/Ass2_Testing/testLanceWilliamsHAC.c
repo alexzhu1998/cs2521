@@ -47,6 +47,8 @@ Tree printDendrogram(Dendrogram dn, int depth) {
 	}
 	
 	Tree bothTrees = addTree(tl, tr);
+	//freeTree(tl);
+	//freeTree(tr);
 	return bothTrees;
 }
 
@@ -58,11 +60,11 @@ int main(int argc, char* argv[]) {
 	
 	Graph g = readGraph(argv[1]);
 
-	Dendrogram dn = LanceWilliamsHAC(g, SINGLE_LINKAGE);
+	Dendrogram dn = LanceWilliamsHAC(g, COMPLETE_LINKAGE);
 	Tree allTree = printDendrogram(dn, 1);
 	printClusters(allTree, 0);
 	freeDendrogram(dn);
-	
+	// freeTree(allTree);
 	GraphFree(g);	
 }
 
