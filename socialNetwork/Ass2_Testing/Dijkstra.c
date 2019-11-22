@@ -47,7 +47,7 @@ ShortestPaths dijkstra(Graph g, Vertex src) {
 		printf("Insufficient Memory, abort");
 		abort();
 	}
-
+	// Set infinity for distance array
 	for (int i = 0; i < nV; i++) {
 		sps.dist[i] = INT_MAX;
 		sps.pred[i] = NULL;
@@ -57,13 +57,14 @@ ShortestPaths dijkstra(Graph g, Vertex src) {
 
 	ItemPQ item;
 	item.key = src;
+
 	// weight from source
 	item.value = 0;
 
-	// Only add the initial item
+	// Only add the initial item to Priority Queue
 	PQAdd(pq,item);
 
-
+	// Set source distance as 0
 	sps.dist[src] = 0;
 
 	// Initiate the PQ list
@@ -76,6 +77,8 @@ ShortestPaths dijkstra(Graph g, Vertex src) {
 		}
 	}
 
+	// If after all updates, there are still unreached nodes,
+	// Set them to 0
 	for (int i = 0; i <nV; i++) {
 		if(sps.dist[i]==INT_MAX){
 			sps.dist[i]=0;
@@ -87,6 +90,7 @@ ShortestPaths dijkstra(Graph g, Vertex src) {
 
 }
 
+// Show shortest path
 void showShortestPaths(ShortestPaths sps) {
 	int i = 0;
 	printf("Node %d\n", sps.src);
@@ -144,6 +148,7 @@ void freeShortestPaths(ShortestPaths sps) {
 /* HELPER FUNCTIONS */
 //////////////////////
 
+// Called from the update function to update shortest path
 void updateShortestPaths (ShortestPaths sps, AdjList adjEdge,ItemPQ s, int c) {
 	if (c == 1) {
 		// free entire predecessor linked list 
@@ -182,6 +187,7 @@ void updateShortestPaths (ShortestPaths sps, AdjList adjEdge,ItemPQ s, int c) {
 	}
 }
 
+// Function that updates priority queue
 void update (ShortestPaths sps, PQ pq, ItemPQ s, AdjList adjEdge) {
 	// if new distance is less than existing
 	//relaxation condition

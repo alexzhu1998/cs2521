@@ -46,6 +46,7 @@ NodeValues closenessCentrality(Graph g) {
 			if (paths.dist[j] == 0 && j != i) isolated++;
 			sum += paths.dist[j];
 		}
+		// if the nodes are not completely isolated
 		if (sum != 0){
 			if (isolated != 0) {
 				double n = nvs.numNodes - isolated;
@@ -92,7 +93,6 @@ NodeValues betweennessCentrality(Graph g) {
 				
 			}
 		}
-		// showShortestPaths(paths);
 		freeShortestPaths(paths);
 	}
 
