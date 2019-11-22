@@ -73,6 +73,12 @@ NodeValues betweennessCentrality(Graph g) {
 	NodeValues nvs = {0};
 	nvs.numNodes = GraphNumVertices(g);
 	nvs.values = calloc(nvs.numNodes, sizeof(double));
+
+	// No Memory
+	if (nvs.values == NULL) {
+		printf("Insufficient Memory, abort");
+		abort();
+	}
 	// use dijkstra to give the heads of the shortest path for destination j
 	// if the predecessor nodes contain an element other than i or src
 	// then its important

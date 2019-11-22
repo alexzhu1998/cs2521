@@ -41,6 +41,12 @@ ShortestPaths dijkstra(Graph g, Vertex src) {
 	sps.src = src;
 	sps.dist = calloc(nV, sizeof(int));
 	sps.pred = calloc(nV, sizeof(PredNode));
+	
+	// No Memory
+	if (sps.pred == NULL || sps.dist == NULL) {
+		printf("Insufficient Memory, abort");
+		abort();
+	}
 
 	for (int i = 0; i < nV; i++) {
 		sps.dist[i] = INT_MAX;

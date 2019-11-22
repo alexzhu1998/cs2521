@@ -41,6 +41,8 @@ Dendrogram* mergeClusters (Dendrogram *dendA, double **dist, int n, int method);
 Dendrogram LanceWilliamsHAC(Graph g, int method) {
     int n = GraphNumVertices(g);
     double **dist = calloc(n*n, sizeof(double*));
+
+
     distArr(dist, g, n);
 
     // Initiate an array of pointers

@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 	
 	Graph g = readGraph(argv[1]);
 
-	Dendrogram dn = LanceWilliamsHAC(g, COMPLETE_LINKAGE);
+	Dendrogram dn = LanceWilliamsHAC(g, SINGLE_LINKAGE);
 	Tree allTree = printDendrogram(dn, 1);
 	printClusters(allTree, 0);
 	freeDendrogram(dn);
