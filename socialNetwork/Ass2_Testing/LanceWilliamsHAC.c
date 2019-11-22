@@ -184,30 +184,19 @@ Dendrogram* mergeClusters (Dendrogram *dendA, double **dist, int n, int method)
     int i,j,x,y;
     double minMaxDist;
     //locates minimum or maximum
-    if (method == SINGLE_LINKAGE) {
-        minMaxDist = __DBL_MAX__;
-    } else {
-        minMaxDist = 0;
-    }
+    minMaxDist = __DBL_MAX__;
 
     for (i = 0; i < n; i++) {
         // ensures j > i, which ensures y > x
         for (j = i; j < n; j++){
             if (i == j) continue;
             // method can only either be 1 or 2
-            if (method == SINGLE_LINKAGE) {
-                if (dist[i][j] < minMaxDist && dist[i][j] != inacc) {
-                    minMaxDist = dist[i][j];
-                    x = i;
-                    y = j;
-                }
-            } else {
-                if (dist[i][j] > minMaxDist && dist[i][j] != inacc) {
-                    minMaxDist = dist[i][j];
-                    x = i;
-                    y = j;
-                }
+            if (dist[i][j] < minMaxDist && dist[i][j] != inacc) {
+                minMaxDist = dist[i][j];
+                x = i;
+                y = j;
             }
+        
         }
     }
     
