@@ -1,0 +1,2342 @@
+Session: 19T3
+Assignment: assign1  Submission ID: 5160021
+
+
+Your submission has been marked. 
+!!section banner
+#######    #     #####    ###     ###    #####     #
+#         ##    #     #  #   #   #   #  #     #   ##
+#        # #    #       # #   # # #   #       #  # #
+ #####     #    ######  #  #  # #  #  #  #####     #
+      #    #    #     # #   # # #   # # #          #
+#     #    #    #     #  #   #   #   #  #          #
+ #####   #####   #####    ###     ###   #######  #####
+
+5160021 Zhu, Alex J H                           3589/3 ACTLD1 MATHU1
+
+Submissions:-
+
+S 0     Thu Oct 24 16:27:12 2019        5160021 fri11-bongo assign1 -1:-16
+S 1     Thu Oct 24 17:19:56 2019        5160021 fri11-bongo assign1 -1:-15
+S 2     Sat Oct 26 01:47:37 2019        5160021 fri11-bongo assign1 0:-7
+S 0     Sat Oct 26 08:52:15 2019        5160021 fri11-bongo assign1 0:0
+
+Fri Nov 08 19:16:48 2019                ## wagner.orchestra.cse.unsw.EDU.AU ##
+!!section listing
+-rw-r----- z5160021/z5160021 22843 2019-10-26 02:18 textbuffer.c
+
+===============================================================================
+-rw-r----- 1 cs2521 cs2521 22843 Oct 26 02:18 textbuffer.c
+===============================================================================
+
+     1  #include <stdio.h>
+     2  #include <assert.h>
+     3  #include <stdlib.h>
+     4  #include <string.h>
+     5
+     6
+     7  #include "textbuffer.h"
+     8
+     9
+    10  typedef struct TBNode {
+    11      char *value;
+    12      struct TBNode *prev;
+    13      struct TBNode *next;
+    14  } TBNode;
+    15
+    16  struct textbuffer {
+    17      size_t totalChar;
+    18      int nitems;
+    19      TBNode *first;
+    20      TBNode *last;
+    21  };
+    22
+    23  ////// START HELPER FUNCTIONS
+    24  // frees a singly linked list - used for searchTB
+    25  void freeList (Match head) {
+    26      if (head == NULL) return;
+    27      Match curr = head;
+    28      Match prev = curr;
+    29      while (curr != NULL) {
+    30          prev = curr;
+    31          curr = curr->next;
+    32          free(prev);
+    33      }
+    34  }
+    35
+    36  // prints a singly linked list - used for searchTB
+    37  void printList (Match head) {
+    38      if (head == NULL) return;
+    39      for (Match curr = head; curr != NULL; curr = curr->next) {
+    40          printf("Node lineNum: %d, Node colNum: %d\n",
+    41          curr->lineNumber, curr->columnNumber);
+    42      }
+    43  }
+    44
+    45  // aborts whenever an invalid input was received
+    46  void errorAbort (char *text){
+    47      printf("%s\n",text);
+    48      abort();
+    49  }
+    50
+    51
+    52  // Checking for internal consistency of the TB
+    53  bool validTB (TB tb) {
+    54      if (tb == NULL) {
+    55                  errorAbort("TB is NULL\n");
+    56                  return false;
+    57          }
+    58
+    59          if (tb->first == NULL) {
+    60                  // list is empty; last should be null
+    61                  if (tb->last != NULL) {
+    62                          errorAbort("Non-NULL pointers in empty list\n");
+    63                          return false;
+    64                  }
+    65          } else {
+    66                  // list is not empty; last should be non-null
+    67                  if (tb->last == NULL) {
+    68                          errorAbort("NULL pointers in non-empty list\n");
+    69                          return false;
+    70                  }
+    71          }
+    72
+    73          // check scanning forward through list
+    74          size_t count = 0;
+    75          for (TBNode *curr = tb->first; curr != NULL; curr = curr->next) {
+    76                  if (curr->prev != NULL && curr->prev->next != curr) {
+    77                      printf("Invalid forward link into node (%s)\n",curr->value);
+    78                          errorAbort("");
+    79                          return 0;
+    80                  }
+    81
+    82                  if (curr->next != NULL && curr->next->prev != curr) {
+    83                      printf("Invalid backward link into node (%s)\n",curr->value);
+    84              errorAbort("");
+    85                          return 0;
+    86                  }
+    87                  count++;
+    88          }
+    89
+    90          if (count != tb->nitems) {
+    91              printf("Forward count mismatch; counted=%zu, nitems=%d\n",
+    92                          count,
+    93                          tb->nitems);
+    94                  errorAbort("");
+    95                  return false;
+    96          }
+    97
+    98      //checking number of characters are consistent
+    99      count = 0;
+   100      for (TBNode *curr = tb->first; curr != NULL; curr = curr->next) {
+   101          count += strlen(curr->value);
+   102          count += strlen("\n");
+   103      }
+   104
+   105
+   106      if (count != tb->totalChar) {
+   107          printf("Total char count mismatch; counted=%zu, totalChar=%ld\n",
+   108                          count,
+   109                          tb->totalChar);
+   110                  errorAbort("");
+   111                  return false;
+   112      }
+   113          // check scanning backward through list
+   114          count = 0;
+   115          for (TBNode *curr = tb->last; curr != NULL; curr = curr->prev)
+   116                  count++;
+   117
+   118          if (count != tb->nitems) {
+   119              printf("Backward count mismatch; counted=%zu, nitems=%d\n",
+   120                          count,
+   121                          tb->nitems);
+   122                  errorAbort("");
+   123                  return false;
+   124          }
+   125          // nothing went wrong => should be ok
+   126          return true;
+   127  }
+   128
+   129  //creates a new textbuffer node - used in newTB
+   130  void newNodefoo (TB tb, char *text){
+   131
+   132      if (text == NULL) return;
+   133      //allocate memory for the node
+   134      TBNode *newNode = malloc(sizeof(*newNode));
+   135      if (newNode == NULL) errorAbort("ERROR in newNodefoo");
+   136      //allocate memory for the array
+   137      newNode->value = malloc(sizeof(char)*(strlen(text) + 1));
+   138      if (newNode == NULL) errorAbort("ERROR in newNodefoo");
+   139      strcpy(newNode->value, text);
+   140      newNode->prev = newNode->next = NULL;
+   141
+   142      //linking the nodes in the textbuffer
+   143      if (tb->first == NULL && tb->last == NULL){
+   144          tb->first = tb->last = newNode;
+   145      } else {
+   146          tb->last->next = newNode;
+   147          newNode->prev = tb->last;
+   148          tb->last = newNode;
+   149      }
+   150      tb->nitems++;
+   151
+   152  }
+   153
+   154
+   155  //shift the current position of the array forward, so that there is enough space to place the text string into the spot - used in strAppend as part of a function in formRichText
+   156  char* insertChar (int pos, char *string, char *insertString, bool replace) {
+   157      size_t length;
+   158      if (replace) {
+   159          length = strlen(string) + strlen(insertString);
+   160      } else {
+   161          length = strlen(string) + strlen(insertString) + 1;
+   162      }
+   163      // malloc +1 for null terminator
+   164      char *textArray = malloc(sizeof(char) *(length+1));
+   165      textArray[0] = '\0';
+   166      int i = 0;
+   167
+   168      for (i = 0; i < length; i++) {
+   169          if (i >= pos && i < pos + strlen(insertString)) {
+   170              textArray[i] = insertString[i-pos];
+   171          } else if (i < pos) {
+   172              textArray[i] = string[i];
+   173          } else if (i >= pos + strlen(insertString)) {
+   174              if (replace) {
+   175                  textArray[i] = string[i-strlen(insertString)+1];
+   176              } else {
+   177                  textArray[i] = string[i-strlen(insertString)];
+   178              }
+   179          }
+   180      }
+   181      textArray[i] = '\0';
+   182      //printf("textArray %s\n", textArray);
+   183      return textArray;
+   184
+   185  }
+   186
+   187  //use insertChar function differently depending on the special symbols being used, if # is used, there will not be an ending # to be replaced. The strAppend will be used in applyRichText as part of formRichText
+   188  void strAppend (
+   189      char *str, char* startBuffer, char* endBuffer,int startPos, int endPos
+   190  ) {
+   191      //inserting  starting pair <...> into the array
+   192      char* temp;
+   193      temp = insertChar(startPos,str,startBuffer,1);
+   194      strcpy(str,temp);
+   195      free(temp);
+   196
+   197      //inserting  ending pair <...> into the array
+   198      if (strcmp(endBuffer,"</h1>") == 0) {
+   199          endPos = strlen(str);
+   200          temp = insertChar(endPos,str,endBuffer,0);
+   201          strcpy(str,temp);
+   202          free(temp);
+   203      } else {
+   204          endPos += strlen(startBuffer) -1;
+   205          temp = insertChar(endPos,str,endBuffer,1);
+   206          strcpy(str,temp);
+   207          free(temp);
+   208      }
+   209  }
+   210
+   211  //function that takes in the textbuffer node and applies changes to the string it contains
+   212  void applyRichText (TB tb, TBNode *node) {
+   213      TBNode *curr = node;
+   214      int i = 0;
+   215
+   216      while (i < strlen(curr->value)) {
+   217          if (curr->value[i] == '#' && i == 0) {
+   218              //string ended
+   219              if (curr->value[i + 1] == '\0') {
+   220                  i++;
+   221              // string didnt end, go to the end and insert <h1> and </h1>
+   222              } else {
+   223                  int j = strlen(curr->value);
+   224                  size_t newSLength = strlen(curr->value);
+   225                  newSLength += strlen("<h1>") + strlen("</h1>") + 1;
+   226                  curr->value = (char *)realloc(curr->value,newSLength);
+   227
+   228                  strAppend(curr->value,"<h1>", "</h1>",i,j);
+   229
+   230                  tb->totalChar += strlen("<h1>") + strlen("</h1>") -1;
+   231
+   232                  //special case breaks loop if this runs
+   233                  break;
+   234              }
+   235          } else if (curr->value[i] == '*' || curr->value[i] == '_') {
+   236              char symbol;
+   237              // 5 is the max length of <b> or </b> + 1
+   238              char buffer1[5];
+   239              char buffer2[5];
+   240
+   241              if (curr->value[i] == '*') {
+   242                  symbol = '*';
+   243                  strcpy(buffer1,"<b>");
+   244                  strcpy(buffer2,"</b>");
+   245              } else {
+   246                  symbol = '_';
+   247                  strcpy(buffer1, "<i>");
+   248                  strcpy(buffer2, "</i>");
+   249              }
+   250
+   251              int j = i + 1;
+   252              for (j = i+1; j < strlen(curr->value); j++) {
+   253                  if (curr->value[j] == symbol) {
+   254                      break;
+   255                  }
+   256              }
+   257
+   258              if (j == i + 1) {
+   259                  i++;
+   260              } else if (j == strlen(curr->value)) {
+   261                  i++;
+   262              // there is a non consecutive asterix after i position
+   263              } else {
+   264                  size_t newSLength = strlen(curr->value);
+   265                  newSLength += strlen(buffer1) + strlen(buffer2) + 1;
+   266                  curr->value = (char *)realloc(curr->value,newSLength);
+   267
+   268                  strAppend(curr->value,buffer1,buffer2, i,j);
+   269                  // - 2 totalChar because * are replaced
+   270                  tb->totalChar += strlen(buffer1) + strlen(buffer2) -2;
+   271                  //jump to the character after next special symbol
+   272                  i = j + 1;
+   273              }
+   274          } else {
+   275              i++;
+   276          }
+   277      }
+   278
+   279  }
+   280
+   281  //////END HELPER FUNCTIONS
+   282
+   283  /**
+   284   * Allocate a new textbuffer whose contents is initialised with the text
+   285   * in the given string.
+   286   */
+   287  TB newTB (char *text) {
+   288      // allocating memory for textbuffer
+   289      TB new = malloc(sizeof(*new));
+   290      if (new == NULL) errorAbort("ERROR in newTB");
+   291      new->first = new->last = NULL;
+   292      new->totalChar = sizeof(char)*strlen(text);
+   293      new->nitems = 0;
+   294
+   295      int i, j;
+   296      int prevI = 0;
+   297
+   298      for (i = 0; text[i] != '\0'; i++) {
+   299          char *temp = malloc(strlen(text)+1);
+   300          if (text[i] == '\n') {
+   301              for (j = 0; j < i-prevI; j++) {
+   302                  if (text[j+prevI] == '\n') {
+   303                      prevI++;
+   304                  }
+   305                  if (text[j+prevI] != '\n'){
+   306                      temp[j] = text[j+prevI];
+   307                  } else {
+   308                      break;
+   309                  }
+   310              }
+   311              temp[j] = '\0';
+   312              prevI = i;
+   313
+   314              newNodefoo(new, temp);
+   315          }
+   316          free(temp);
+   317      }
+   318
+   319
+   320          return new;
+   321  }
+   322
+   323  /**
+   324   * Free  the  memory occupied by the given textbuffer. It is an error to
+   325   * access the buffer afterwards.
+   326   */
+   327  void releaseTB (TB tb) {
+   328      if (validTB(tb) == false) errorAbort("validTB error");
+   329
+   330      if (tb->first == NULL && tb->last == NULL) {
+   331          free(tb);
+   332      } else {
+   333
+   334          TBNode *curr = tb->first;
+   335
+   336          while (curr != NULL) {
+   337              if (curr->value != NULL) free(curr->value);
+   338              TBNode *tmp = curr;
+   339              curr = curr->next;
+   340              free(tmp);
+   341
+   342          }
+   343          free(tb);
+   344      }
+   345  }
+   346
+   347
+   348  /**
+   349   * Allocate  and return a string containing all of the text in the given
+   350   * textbuffer. If showLineNumbers is true, add a prefix corresponding to
+   351   * the line number.
+   352   */
+   353  char *dumpTB (TB tb, bool showLineNumbers) {
+   354      // separating two cases for Line Numbers
+   355      if (showLineNumbers) {
+   356          //record exact memory required for digits and spaces
+   357          int i;
+   358          size_t totalSpaceDots = sizeof(". ")*tb->nitems;
+   359          size_t totalDigits = 0;
+   360          for (i = 1; i <= tb->nitems; i++) totalDigits += sizeof(i);
+   361          size_t length;
+   362          length = tb->totalChar+ totalSpaceDots+ totalDigits + 2;
+   363          char *textArray = malloc(length);
+   364          textArray[0] = '\0';
+   365
+   366          i = 1;
+   367          TBNode *curr = tb->first;
+   368          while (curr != NULL) {
+   369              //initiate a variable for converting numbers into strings
+   370              char *numberText = malloc(totalDigits);
+   371
+   372              //paste into integers
+   373              sprintf(numberText, "%d",i);
+   374              strcat(numberText,". ");
+   375
+   376              //append number and dots
+   377              strcat(textArray,numberText);
+   378
+   379              //append text
+   380              strcat(textArray, curr->value);
+   381                  strcat(textArray, "\n");
+   382
+   383                  free(numberText);
+   384                  curr = curr->next;
+   385                  i++;
+   386              }
+   387              strcat(textArray, "\0");
+   388
+   389              return textArray;
+   390
+   391      } else {
+   392          TBNode *curr = tb->first;
+   393          // allocating +2 memory in case
+   394          char *textArray = malloc(tb->totalChar+2);
+   395          textArray[0] = '\0';
+   396
+   397          if (curr != NULL){
+   398              while (curr != NULL) {
+   399                  strcat(textArray, curr->value);
+   400                  strcat(textArray, "\n");
+   401                  curr = curr->next;
+   402              }
+   403              strcat(textArray, "\0");
+   404          }
+   405          return textArray;
+   406      }
+   407      return NULL;
+   408  }
+   409
+   410  /**
+   411   * Return the number of lines of the given textbuffer.
+   412   */
+   413  int linesTB (TB tb) {
+   414          return tb->nitems;
+   415  }
+   416
+   417  /**
+   418   * Add a given prefix to all lines between 'from' and 'to', inclusive.
+   419   * - The  program  should abort() wih an error message if 'from' or 'to'
+   420   *   is out of range. The first line of a textbuffer is at position 1.
+   421   */
+   422  void addPrefixTB (TB tb, int from, int to, char *prefix) {
+   423      //if incorrect parameters, abort;
+   424      if (to < from || to < 0 || from < 0)
+   425          errorAbort("ERROR in addPrefixTB");
+   426      if (prefix == NULL) errorAbort("ERROR in addPrefixTB");
+   427      if (prefix[0] == '\0') return;
+   428
+   429      TBNode *curr = tb->first;
+   430      char *temp = malloc(sizeof(char)*((tb->totalChar)+1));
+   431      if (temp == NULL) errorAbort("ERROR in addPrefixTB");
+   432      temp[0] = '\0';
+   433
+   434      int i = 1;
+   435      while (curr != NULL && i <= to) {
+   436          // initiate temporary to concatenate curr->value to prefix
+   437          if (i >= from && i <= to) {
+   438              strcpy(temp, curr->value);
+   439              size_t length = strlen(prefix)+strlen(curr->value)+1;
+   440              curr->value = (char *)realloc(curr->value, length);
+   441              sprintf(curr->value, "%s%s", prefix, temp);
+   442              tb->totalChar += strlen(prefix);
+   443          }
+   444          i++;
+   445          curr = curr->next;
+   446      }
+   447      free(temp);
+   448
+   449  }
+   450
+   451  /**
+   452   * Merge 'tb2' into 'tb1' at line 'pos'.
+   453   * - After this operation:
+   454   *   - What was at line 1 of 'tb2' will now be at line 'pos' of 'tb1'.
+   455   *   - Line  'pos' of 'tb1' will moved to line ('pos' + linesTB('tb2')),
+   456   *     after the merged-in lines from 'tb2'.
+   457   *   - 'tb2' can't be used anymore (as if we had used releaseTB() on it)
+   458   * - The program should abort() with an error message if 'pos' is out of
+   459   *   range.
+   460   */
+   461  void mergeTB (TB tb1, int pos, TB tb2) {
+   462      if (pos > tb1->nitems+1 || pos < 1) errorAbort("ERROR in mergeTB");
+   463      if (tb1 == tb2) return;
+   464      if (tb2->first == NULL || tb2 == NULL){
+   465          free(tb2);
+   466          return;
+   467      }
+   468
+   469      if (tb1->first == NULL && tb1->last == NULL) {
+   470          tb1->first = tb2->first;
+   471          tb1->last = tb2->last;
+   472      } else {
+   473          if (pos == 1) {
+   474              // position number at the start
+   475              tb1->first->prev = tb2->last;
+   476              tb2->last->next = tb1->first;
+   477              tb1->first = tb2->first;
+   478          } else if (pos == tb1->nitems+1) {
+   479              // position number at the end
+   480              tb1->last->next = tb2->first;
+   481              tb2->first->prev = tb1->last;
+   482              tb1->last = tb2->last;
+   483          } else {
+   484              // position number in the middle
+   485              TBNode *curr1 = tb1->first;
+   486              int i = 1;
+   487              while (curr1 != NULL) {
+   488                  //moving curr in position
+   489                  if (i == pos) {
+   490                      break;
+   491                  }
+   492                  i++;
+   493                  curr1 = curr1->next;
+   494              }
+   495              //relinking
+   496              tb2->first->prev = curr1->prev;
+   497              tb2->last->next = curr1;
+   498              curr1->prev->next = tb2->first;
+   499              curr1->prev = tb2->last;
+   500          }
+   501      }
+   502      //changing tb1 nitems and totalChar
+   503      tb1->nitems += tb2->nitems;
+   504      tb1->totalChar += tb2->totalChar;
+   505
+   506      //removing the ties of tb2
+   507      tb2->first = NULL;
+   508      tb2->last = NULL;
+   509      free(tb2);
+   510  }
+   511
+   512  /**
+   513   * Copy 'tb2' into 'tb1' at line 'pos'.
+   514   * - After this operation:
+   515   *   - What was at line 1 of 'tb2' will now be at line 'pos' of 'tb1'.
+   516   *   - Line  'pos' of 'tb1' will moved to line ('pos' + linesTB('tb2')),
+   517   *     after the pasted-in lines from 'tb2'.
+   518   *   - 'tb2' is unmodified and remains usable independent of tb1.
+   519   * - The program should abort() with an error message if 'pos' is out of
+   520   *   range.
+   521   */
+   522  void pasteTB (TB tb1, int pos, TB tb2) {
+   523      if (pos > tb1->nitems+1 || pos < 1) errorAbort("ERROR in pasteTB");
+   524      if (tb2->first == NULL || tb2 == NULL) return;
+   525
+   526      char *tempText = dumpTB(tb2,false);
+   527      TB tbTemp = newTB(tempText);
+   528      free(tempText);
+   529      mergeTB(tb1,pos,tbTemp);
+               ^
+               + ==== +
+               + Nice +
+               + ==== +
+   530  }
+   531
+   532  /**
+   533   * Cut the lines between and including 'from' and 'to' out of the given
+   534   * textbuffer 'tb' into a new textbuffer.
+   535   * - The result is a new textbuffer (much as one created with newTB()).
+   536   * - The cut lines will be deleted from 'tb'.
+   537   * - The  program should abort() with an error message if 'from' or 'to'
+   538   *   is out of range.
+   539   */
+   540  TB cutTB (TB tb, int from, int to) {
+   541      if (to < from || to <= 0 || from <= 0 || to > tb->nitems)
+   542          errorAbort("ERROR in cutTB boundary");
+   543
+   544      TBNode *curr = tb->first;
+   545      TBNode *fromNode = NULL;
+   546      TBNode *toNode = NULL;
+   547      // find position for from and to, and assign nodes on them
+   548      int i = 1;
+   549      while (curr != NULL && i <= to) {
+   550          if (i == from) {
+   551              fromNode = curr;
+   552          }
+   553          if (i == to || i == tb->nitems) {
+   554              toNode = curr;
+   555              break;
+   556          }
+   557          curr = curr->next;
+   558          i++;
+   559      }
+   560
+   561
+   562      TB tbNew = newTB("");
+   563      tbNew->first = fromNode;
+   564      tbNew->last = toNode;
+   565      //if from is the first item
+   566      if (tb->first == fromNode) {
+   567          // if to is the last item
+   568          if (tb->last == toNode) {
+   569              tb->first = NULL;
+   570              tb->last = NULL;
+   571          } else {
+   572              tb->first = toNode->next;
+   573              toNode->next->prev = NULL;
+   574              toNode->next = NULL;
+   575          }
+   576          // if to is not the last item
+   577      } else {
+   578          // if to is the last item, and from is not the last item
+   579          if (tb->last == toNode) {
+   580              tb->last = fromNode->prev;
+   581              fromNode->prev->next = NULL;
+   582              fromNode->prev = NULL;
+   583          } else {
+   584              fromNode->prev->next = toNode->next;
+   585              toNode->next->prev = fromNode->prev;
+   586              fromNode->prev = NULL;
+   587              toNode->next = NULL;
+   588          }
+   589      }
+   590      // changing the nitems and totalChar after removing list
+   591      int tempItems = tb->nitems;
+   592      size_t tempChar = tb->totalChar;
+   593
+   594      curr = tb->first;
+   595      tb->nitems = 0;
+   596      tb->totalChar = 0;
+   597      if (curr != NULL) {
+   598          for (curr = tb->first; curr!= NULL; curr = curr->next) {
+   599              tb->nitems ++;
+   600              tb->totalChar += strlen(curr->value)+1;
+   601          }
+   602      }
+   603
+   604      tbNew->nitems = tempItems - tb->nitems;
+   605      tbNew->totalChar = tempChar - tb->totalChar;
+   606
+   607          return tbNew;
+   608  }
+   609
+   610  /**
+   611   * Return a linked list of match nodes containing the positions of all
+   612   * of the matches of string 'search' in 'tb'.
+   613   * - The textbuffer 'tb' should remain unmodified.
+   614   * - The user is responsible for freeing the returned list.
+   615   */
+   616  Match searchTB (TB tb, char *search) {
+   617      if (search == NULL)
+   618          errorAbort("ERROR in searchTB search field is NULL");
+   619
+   620      Match head = malloc(sizeof(*head));
+   621      head->columnNumber = 0;
+   622      head->lineNumber = 0;
+   623      head->next = NULL;
+   624
+   625      if (strcmp(search, "") == 0 || tb->first == NULL) {
+   626          free(head);
+   627          return NULL;
+   628      }
+   629
+   630
+   631      Match currNode = head;
+   632      int lNum = 1;
+   633      int cNum = 0;
+   634      int numNodes = 0;
+   635      TBNode *curr = tb->first;
+   636      for (curr = tb->first; curr != NULL; curr = curr->next) {
+   637          char *pointer = curr->value;
+   638          while ((pointer = strstr(pointer,search)) != NULL) {
+   639              cNum = pointer - curr->value + 1;
+   640              //shifting position to its next substring
+   641              pointer++;
+   642              if (numNodes == 0) {
+   643                  currNode->columnNumber = cNum;
+   644                  currNode->lineNumber = lNum;
+   645              } else {
+   646                  currNode->next = malloc(sizeof(*currNode));
+   647                  currNode = currNode->next;
+   648                  currNode->columnNumber = cNum;
+   649                  currNode->lineNumber = lNum;
+   650              }
+   651              numNodes++;
+   652          }
+   653          lNum++;
+   654      }
+   655
+   656      currNode->next = NULL;
+   657
+   658      return head;
+   659  }
+   660
+   661  /**
+   662   * Remove  the  lines between 'from' and 'to' (inclusive) from the given
+   663   * textbuffer 'tb'.
+   664   * - The  program should abort() with an error message if 'from' or 'to'
+   665   *   is out of range.
+   666   */
+   667  void deleteTB (TB tb, int from, int to) {
+   668      if (to < from || to <= 0 || from <= 0 || to > tb->nitems)
+   669          errorAbort("ERROR in deleteTB boundary");
+   670
+   671      TB garbageTB = cutTB(tb,from,to);
+   672      releaseTB(garbageTB);
+   673  }
+   674
+   675
+   676  /**
+   677   * Search  every  line of the given textbuffer for every occurrence of a
+   678   * set of specified substitutions and alter them accordingly.
+   679   * - Refer to the spec for details.
+   680   */
+   681  void formRichText (TB tb) {
+   682      TBNode *curr = tb->first;
+   683
+   684      while (curr != NULL) {
+   685          applyRichText(tb,curr);
+   686          curr = curr->next;
+   687      }
+   688  }
+   689
+   690  ////////////////////////////////////////////////////////////////////////
+   691  // Bonus challenges
+   692  //which lines of text are added or deleted to get from tb1 to tb2
+   693  char *diffTB (TB tb1, TB tb2) {
+   694      TBNode *curr1 = tb1->first;
+   695      TBNode *curr2 = tb2->first;
+   696
+   697      char *text = malloc(sizeof(*text));
+   698      text[0] = '\0';
+   699      int i = 1;
+   700
+   701      //looping through both linked list, appending lines if different
+   702      while (curr1 != NULL && curr2 != NULL) {
+   703          if (strcmp(curr1->value,curr2->value) != 0) {
+   704
+   705              size_t length = strlen(text) + strlen(curr1->value) +
+   706                  strlen(curr2->value) + strlen("+,\n-,\n")
+   707                  + i + i+1 + 2;
+   708              text = (char *)realloc(text, length);
+   709              char *text2 = malloc(i);
+   710              char *text3 = malloc(i+1);
+   711              sprintf(text2,"%d",i);
+   712              sprintf(text3,"%d",i+1);
+   713
+   714              strcat(text,"+,");
+   715              strcat(text,text2);
+   716              strcat(text,",");
+   717              strcat(text,curr2->value);
+   718              strcat(text,"\n-,");
+   719              strcat(text,text3);
+   720              strcat(text,"\n");
+   721
+   722              free(text2);
+   723              free(text3);
+   724          }
+   725          curr1 = curr1->next;
+   726          curr2 = curr2->next;
+   727          i++;
+   728      }
+   729      /*** if first linked list hits NULL, loop through second linked list
+   730      **   and print through the second linked list with +'s
+   731      */
+   732      if (curr1 == NULL && curr2 != NULL) {
+   733          while (curr2 != NULL) {
+   734              size_t length = strlen(text) + strlen(curr2->value) +
+   735                  strlen("+,,\n") + i + 1+ 2;
+   736              text = (char *)realloc(text, length);
+   737              //initiate a variable for converting numbers into strings
+   738              char *text2 = malloc(i);
+   739              sprintf(text2,"%d",i+1);
+   740
+   741              strcat(text,"+,");
+   742              strcat(text,text2);
+   743              strcat(text,",");
+   744              strcat(text,curr2->value);
+   745              strcat(text,"\n");
+   746
+   747              free(text2);
+   748              i++;
+   749              curr2 = curr2->next;
+   750          }
+   751      /*** if second linked list hits NULL, loop through first linked list
+   752      **   and print through the first linked list with -'s
+   753      */
+   754      } else if (curr1 != NULL && curr2 == NULL) {
+   755          while (curr1 != NULL) {
+   756              size_t length = strlen(text) + strlen(curr1->value) +
+   757                  strlen("-,\n") + i + 2;
+   758              text = (char *)realloc(text, length);
+   759              char *text2 = malloc(i);
+   760              sprintf(text2,"%d",i+1);
+   761
+   762              strcat(text,"-,");
+   763              strcat(text,text2);
+   764              strcat(text,"\n");
+   765
+   766              free(text2);
+   767              i++;
+   768              curr1 = curr1->next;
+   769          }
+   770      }
+   771
+   772          return text;
+   773  }
+   774
+   775  void undoTB (TB tb) {
+   776      // operations that can be undone: deleteTB, mergeTB, pasteTB, cutTB
+   777  }
+   778
+   779  void redoTB (TB tb) {
+   780
+   781  }
+   782
+
+
+===============================================================================
+-rw-r----- 1 cs2521 cs2521 6546 Oct 26 08:52 !dryrun_record
+===============================================================================
+
+     1  Dryrun log for z5160021 5160021
+     2
+     3  ** Compiles OK
+     4  -----------------------------------------
+     5
+     6  ** Running tests...
+     7
+     8  Test 01 - dumpTB - no line numbers
+     9  Test passed
+    10
+    11  Test 02 - dumpTB - with line numbers
+    12  Test passed
+    13
+    14  Test 03 - addPrefixTB - adding prefix to middle lines
+    15  Test passed
+    16
+    17  Test 04 - deleteTB - deleting from the middle
+    18  Test passed
+    19
+    20  Test 05 - mergeTB - merging into the middle
+    21  Test passed
+    22
+    23  Test 06 - mergeTB - merging into the end
+    24  Test passed
+    25
+    26  Test 07 - pasteTB - pasting into the middle
+    27  Test passed
+    28
+    29  Test 08 - cutTB - cutting from the middle
+    30  Test passed
+    31
+    32  Test 09 - searchTB - simple search
+    33  Test passed
+    34
+    35  Test 10 - formRichText - simple 1
+    36  Test passed
+    37
+    38  Test 11 - formRichText - simple 2
+    39  Test passed
+    40
+    41  Test 12 (bonus) - diffTB - simple
+    42  Test passed
+    43
+    44  Test 13 (bonus) - undoTB - undoing deleteTB
+    45  Test 13 (bonus) - undoTB - undoing de   Test 13 (bonus) - undoTB - undoing de
+    46  Read in TB from 'simple-1.txt' into t   Read in TB from 'simple-1.txt' into t
+    47  > linesTB(tb);                          > linesTB(tb);
+    48  7                                       7
+    49  > dumpTB(tb, false);                    > dumpTB(tb, false);
+    50  line 01                                 line 01
+    51  line 02                                 line 02
+    52  line 03                                 line 03
+    53  line 04                                 line 04
+    54  line 05                                 line 05
+    55  line 06                                 line 06
+    56  line 07                                 line 07
+    57  > deleteTB(tb, 2, 3);                   > deleteTB(tb, 2, 3);
+    58  > linesTB(tb);                          > linesTB(tb);
+    59  5                                       5
+    60  > dumpTB(tb, false);                    > dumpTB(tb, false);
+    61  line 01                                 line 01
+    62  line 04                                 line 04
+    63  line 05                                 line 05
+    64  line 06                                 line 06
+    65  line 07                                 line 07
+    66  > undoTB(tb);                           > undoTB(tb);
+    67  > linesTB(tb);                          > linesTB(tb);
+    68  5                                     | 7
+    69  > dumpTB(tb, false);                    > dumpTB(tb, false);
+    70  line 01                                 line 01
+    71                                        > line 02
+    72                                        > line 03
+    73  line 04                                 line 04
+    74  line 05                                 line 05
+    75  line 06                                 line 06
+    76  line 07                                 line 07
+    77  > releaseTB(tb);                        > releaseTB(tb);
+    78  Your program gave the wrong output.
+    79  Test failed
+    80
+    81  Test 14 (bonus) - undoTB - undoing mergeTB
+    82  Test 14 (bonus) - undoTB - undoing me   Test 14 (bonus) - undoTB - undoing me
+    83  Read in TB from 'simple-1.txt' into t   Read in TB from 'simple-1.txt' into t
+    84  Read in TB from 'simple-2.txt' into t   Read in TB from 'simple-2.txt' into t
+    85  > linesTB(tb1);                         > linesTB(tb1);
+    86  7                                       7
+    87  > dumpTB(tb1, false);                   > dumpTB(tb1, false);
+    88  line 01                                 line 01
+    89  line 02                                 line 02
+    90  line 03                                 line 03
+    91  line 04                                 line 04
+    92  line 05                                 line 05
+    93  line 06                                 line 06
+    94  line 07                                 line 07
+    95  > linesTB(tb2);                         > linesTB(tb2);
+    96  5                                       5
+    97  > dumpTB(tb2, false);                   > dumpTB(tb2, false);
+    98  line one                                line one
+    99  line two                                line two
+   100  line three                              line three
+   101  line four                               line four
+   102  line five                               line five
+   103  > mergeTB(tb1, 3, tb2);                 > mergeTB(tb1, 3, tb2);
+   104  > linesTB(tb1);                         > linesTB(tb1);
+   105  12                                      12
+   106  > dumpTB(tb1, false);                   > dumpTB(tb1, false);
+   107  line 01                                 line 01
+   108  line 02                                 line 02
+   109  line one                                line one
+   110  line two                                line two
+   111  line three                              line three
+   112  line four                               line four
+   113  line five                               line five
+   114  line 03                                 line 03
+   115  line 04                                 line 04
+   116  line 05                                 line 05
+   117  line 06                                 line 06
+   118  line 07                                 line 07
+   119  > undoTB(tb1);                          > undoTB(tb1);
+   120  > linesTB(tb1);                         > linesTB(tb1);
+   121  12                                    | 7
+   122  > dumpTB(tb1, false);                   > dumpTB(tb1, false);
+   123  line 01                                 line 01
+   124  line 02                                 line 02
+   125  line one                              <
+   126  line two                              <
+   127  line three                            <
+   128  line four                             <
+   129  line five                             <
+   130  line 03                                 line 03
+   131  line 04                                 line 04
+   132  line 05                                 line 05
+   133  line 06                                 line 06
+   134  line 07                                 line 07
+   135  > releaseTB(tb1);                       > releaseTB(tb1);
+   136  Your program gave the wrong output.
+   137  Test failed
+   138
+   139  Test 15 (bonus) - redoTB - undoing and redoing deleteTB
+   140  Test 15 (bonus) - redoTB - undoing an   Test 15 (bonus) - redoTB - undoing an
+   141  Read in TB from 'simple-1.txt' into t   Read in TB from 'simple-1.txt' into t
+   142  > linesTB(tb);                          > linesTB(tb);
+   143  7                                       7
+   144  > dumpTB(tb, false);                    > dumpTB(tb, false);
+   145  line 01                                 line 01
+   146  line 02                                 line 02
+   147  line 03                                 line 03
+   148  line 04                                 line 04
+   149  line 05                                 line 05
+   150  line 06                                 line 06
+   151  line 07                                 line 07
+   152  > deleteTB(tb, 2, 3);                   > deleteTB(tb, 2, 3);
+   153  > linesTB(tb);                          > linesTB(tb);
+   154  5                                       5
+   155  > dumpTB(tb, false);                    > dumpTB(tb, false);
+   156  line 01                                 line 01
+   157  line 04                                 line 04
+   158  line 05                                 line 05
+   159  line 06                                 line 06
+   160  line 07                                 line 07
+   161  > undoTB(tb);                           > undoTB(tb);
+   162  > linesTB(tb);                          > linesTB(tb);
+   163  5                                     | 7
+   164  > dumpTB(tb, false);                    > dumpTB(tb, false);
+   165  line 01                                 line 01
+   166                                        > line 02
+   167                                        > line 03
+   168  line 04                                 line 04
+   169  line 05                                 line 05
+   170  line 06                                 line 06
+   171  line 07                                 line 07
+   172  > redoTB(tb);                           > redoTB(tb);
+   173  > linesTB(tb);                          > linesTB(tb);
+   174  5                                       5
+   175  > dumpTB(tb, false);                    > dumpTB(tb, false);
+   176  line 01                                 line 01
+   177  line 04                                 line 04
+   178  line 05                                 line 05
+   179  line 06                                 line 06
+   180  line 07                                 line 07
+   181  > releaseTB(tb);                        > releaseTB(tb);
+   182  Your program gave the wrong output.
+   183  Test failed
+   184
+   185  Test 16 (bonus) - redoTB - undoing and redoing mergeTB
+   186  Test 16 (bonus) - redoTB - undoing an   Test 16 (bonus) - redoTB - undoing an
+   187  Read in TB from 'simple-1.txt' into t   Read in TB from 'simple-1.txt' into t
+   188  Read in TB from 'simple-2.txt' into t   Read in TB from 'simple-2.txt' into t
+   189  > linesTB(tb1);                         > linesTB(tb1);
+   190  7                                       7
+   191  > dumpTB(tb1, false);                   > dumpTB(tb1, false);
+   192  line 01                                 line 01
+   193  line 02                                 line 02
+   194  line 03                                 line 03
+   195  line 04                                 line 04
+   196  line 05                                 line 05
+   197  line 06                                 line 06
+   198  line 07                                 line 07
+   199  > linesTB(tb2);                         > linesTB(tb2);
+   200  5                                       5
+   201  > dumpTB(tb2, false);                   > dumpTB(tb2, false);
+   202  line one                                line one
+   203  line two                                line two
+   204  line three                              line three
+   205  line four                               line four
+   206  line five                               line five
+   207  > mergeTB(tb1, 3, tb2);                 > mergeTB(tb1, 3, tb2);
+   208  > linesTB(tb1);                         > linesTB(tb1);
+   209  12                                      12
+   210  > dumpTB(tb1, false);                   > dumpTB(tb1, false);
+   211  line 01                                 line 01
+   212  line 02                                 line 02
+   213  line one                                line one
+   214  line two                                line two
+   215  line three                              line three
+   216  line four                               line four
+   217  line five                               line five
+   218  line 03                                 line 03
+   219  line 04                                 line 04
+   220  line 05                                 line 05
+   221  line 06                                 line 06
+   222  line 07                                 line 07
+   223  > undoTB(tb1);                          > undoTB(tb1);
+   224  > linesTB(tb1);                         > linesTB(tb1);
+   225  12                                    | 7
+   226  > dumpTB(tb1, false);                   > dumpTB(tb1, false);
+   227  line 01                                 line 01
+   228  line 02                                 line 02
+   229  line one                              <
+   230  line two                              <
+   231  line three                            <
+   232  line four                             <
+   233  line five                             <
+   234  line 03                                 line 03
+   235  line 04                                 line 04
+   236  line 05                                 line 05
+   237  line 06                                 line 06
+   238  line 07                                 line 07
+   239  > redoTB(tb1);                          > redoTB(tb1);
+   240  > linesTB(tb1);                         > linesTB(tb1);
+   241  12                                      12
+   242  > dumpTB(tb1, false);                   > dumpTB(tb1, false);
+   243  line 01                                 line 01
+   244  line 02                                 line 02
+   245  line one                                line one
+   246  line two                                line two
+   247  line three                              line three
+   248  line four                               line four
+   249  line five                               line five
+   250  line 03                                 line 03
+   251  line 04                                 line 04
+   252  line 05                                 line 05
+   253  line 06                                 line 06
+   254  line 07                                 line 07
+   255  > releaseTB(tb1);                       > releaseTB(tb1);
+   256  Your program gave the wrong output.
+   257  Test failed
+   258
+   259  12 tests passed 4 tests failed
+   260  -----------------------------------------
+
+gcc -Wall -Werror -std=c11 -g -lm testTextbuffer.c ourTextbuffer.c textbuffer.c -o testTextbuffer
+
+---------------------------------
+** testTextbuffer.c : Compiles OK
+---------------------------------
+
+!!section tests
+** Test 1: dumpTB (no line numbers) - simple textbuffer
+--------------------------------
+** Test passed
+--------------------------------
+** Test 2: dumpTB (no line numbers) - textbuffer with no lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 3: dumpTB (no line numbers) - textbuffer with many lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 4: dumpTB (no line numbers) - textbuffer with empty lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 5: dumpTB (no line numbers) - textbuffer with a long line
+--------------------------------
+** Test passed
+--------------------------------
+** Test 6: dumpTB (no line numbers) - textbuffer with one line
+--------------------------------
+** Test passed
+--------------------------------
+** Test 7: dumpTB (with line numbers) - simple textbuffer
+--------------------------------
+** Test passed
+--------------------------------
+** Test 8: dumpTB (with line numbers) - textbuffer with no lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 9: dumpTB (with line numbers) - textbuffer with many lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 10: dumpTB (with line numbers) - textbuffer with empty lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 11: dumpTB (with line numbers) - textbuffer with long lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 12: dumpTB (with line numbers) - textbuffer with one line
+--------------------------------
+** Test passed
+--------------------------------
+** Test 13: dumpTB (with line numbers) - line numbers after deleteTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 14: dumpTB (with line numbers) - line numbers after cutTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 15: dumpTB (with line numbers) - line numbers after mergeTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 16: dumpTB (with line numbers) - line numbers after pasteTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 17: linesTB - simple textbuffer
+--------------------------------
+** Test passed
+--------------------------------
+** Test 18: linesTB - textbuffer with no lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 19: linesTB - textbuffer with many lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 20: linesTB - textbuffer with empty lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 21: linesTB - textbuffer with long lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 22: addPrefixTB - adding prefix to some lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 23: addPrefixTB - adding prefix to all lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 24: addPrefixTB - adding an empty prefix
+--------------------------------
+** Test passed
+--------------------------------
+** Test 25: deleteTB - deleting some lines from the beginning
+--------------------------------
+** Test passed
+--------------------------------
+** Test 26: deleteTB - deleting some lines from the middle
+--------------------------------
+** Test passed
+--------------------------------
+** Test 27: deleteTB - deleting some lines from the end
+--------------------------------
+** Test passed
+--------------------------------
+** Test 28: deleteTB - deleting all lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 29: deleteTB - deleting a single line from the beginning
+--------------------------------
+** Test passed
+--------------------------------
+** Test 30: deleteTB - deleting a single line from the middle
+--------------------------------
+** Test passed
+--------------------------------
+** Test 31: deleteTB - deleting a single line from the end
+--------------------------------
+** Test passed
+--------------------------------
+** Test 32: deleteTB - deleting multiple times
+--------------------------------
+** Test passed
+--------------------------------
+** Test 33: cutTB - cutting some lines from the beginning
+--------------------------------
+** Test passed
+--------------------------------
+** Test 34: cutTB - cutting some lines from the middle
+--------------------------------
+** Test passed
+--------------------------------
+** Test 35: cutTB - cutting some lines from the end
+--------------------------------
+** Test passed
+--------------------------------
+** Test 36: cutTB - cutting all lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 37: cutTB - cutting a single line from the beginning
+--------------------------------
+** Test passed
+--------------------------------
+** Test 38: cutTB - cutting a single line from the end
+--------------------------------
+** Test passed
+--------------------------------
+** Test 39: cutTB - cutting the same textbuffer multiple times
+--------------------------------
+** Test passed
+--------------------------------
+** Test 40: cutTB - cascading cuts
+--------------------------------
+** Test passed
+--------------------------------
+** Test 41: mergeTB - merging an empty tb into another empty tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 42: mergeTB - merging a non-empty tb into an empty tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 43: mergeTB - merging an empty tb into a non-empty tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 44: mergeTB - merging into the beginning of a tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 45: mergeTB - merging into the middle of a tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 46: mergeTB - merging into the end of a tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 47: mergeTB - merging into the end of the same tb twice
+--------------------------------
+** Test passed
+--------------------------------
+** Test 48: mergeTB - cascading merges
+--------------------------------
+** Test passed
+--------------------------------
+** Test 49: pasteTB - pasting a non-empty tb into an empty tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 50: pasteTB - pasting an empty tb into a non-empty tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 51: pasteTB - pasting into the beginning of a tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 52: pasteTB - pasting into the middle of a tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 53: pasteTB - pasting into the end of a tb
+--------------------------------
+** Test passed
+--------------------------------
+** Test 54: pasteTB - pasting a tb into itself
+--------------------------------
+** Test passed
+--------------------------------
+** Test 55: pasteTB - pasting into the same tb multiple times
+--------------------------------
+** Test passed
+--------------------------------
+** Test 56: pasteTB - cascading pastes
+--------------------------------
+** Test passed
+--------------------------------
+** Test 57: searchTB - searching for the empty string
+--------------------------------
+** Test passed
+--------------------------------
+** Test 58: searchTB - checking case sensitivity
+--------------------------------
+** Test passed
+--------------------------------
+** Test 59: searchTB - at most one occurrence per line 1
+--------------------------------
+** Test passed
+--------------------------------
+** Test 60: searchTB - at most one occurrence per line 2
+--------------------------------
+** Test passed
+--------------------------------
+** Test 61: searchTB - only one occurrence
+--------------------------------
+** Test passed
+--------------------------------
+** Test 62: searchTB - no occurrences
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+[0, 0] -> X                                                |    X
+--------------------------------
+** Test 63: searchTB - multiple occurrences on the same line
+--------------------------------
+** Test passed
+--------------------------------
+** Test 64: searchTB - overlapping pattern 1
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+[2, 4] -> [2, 11] -> [2, 18] -> X                          |    [2, 4] -> [2, 18] -> X
+--------------------------------
+** Test 65: searchTB - overlapping pattern 2
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+[3, 1] -> [3, 3] -> [3, 5] -> [3, 7] -> [3, 9] -> [3, 11   |    [3, 1] -> [3, 7] -> [3, 13] -> [4, 6] -> [4, 12] -> X
+--------------------------------
+** Test 66: searchTB - single-letter search string
+--------------------------------
+** Test passed
+--------------------------------
+** Test 67: formRichText - hash in the beginning of a line
+--------------------------------
+** Test passed
+--------------------------------
+** Test 68: formRichText - hash in the middle of a line
+--------------------------------
+** Test passed
+--------------------------------
+** Test 69: formRichText - line with just a single hash
+--------------------------------
+** Test passed
+--------------------------------
+** Test 70: formRichText - line with just three hashes
+--------------------------------
+** Test passed
+--------------------------------
+** Test 71: formRichText - entire line wrapped in asterisks
+--------------------------------
+** Test passed
+--------------------------------
+** Test 72: formRichText - part of the line wrapped in asterisks
+--------------------------------
+** Test passed
+--------------------------------
+** Test 73: formRichText - line with just one asterisk
+--------------------------------
+** Test passed
+--------------------------------
+** Test 74: formRichText - line with two consecutive asterisks
+--------------------------------
+** Test passed
+--------------------------------
+** Test 75: formRichText - line with two words wrapped in asterisks
+--------------------------------
+** Test passed
+--------------------------------
+** Test 76: formRichText - entire line wrapped in underscores
+--------------------------------
+** Test passed
+--------------------------------
+** Test 77: formRichText - part of the line wrapped in asterisks
+--------------------------------
+** Test passed
+--------------------------------
+** Test 78: formRichText - line with just one underscore
+--------------------------------
+** Test passed
+--------------------------------
+** Test 79: formRichText - line with two consecutive underscores
+--------------------------------
+** Test passed
+--------------------------------
+** Test 80: formRichText - line with two words wrapped in underscores
+--------------------------------
+** Test passed
+--------------------------------
+** Test 81: formRichText - hash in the beginning of a line containing asterisks
+--------------------------------
+** Test passed
+--------------------------------
+** Test 82: formRichText - hash in the middle of a line containing underscores
+--------------------------------
+** Test passed
+--------------------------------
+** Test 83: formRichText - line containing a pair of asterisks and underscores
+--------------------------------
+** Test passed
+--------------------------------
+** Test 84: formRichText - line containing asterisks and underscores, trickier
+--------------------------------
+** Test passed
+--------------------------------
+** Test 85: formRichText - lots of substitutions
+--------------------------------
+** Test passed
+--------------------------------
+** Test 86: formRichText - nesting - pair of underscores within a pair of asterisks
+--------------------------------
+** Test passed
+--------------------------------
+** Test 87: formRichText - nesting - pair of underscores overlap a pair of asterisks
+--------------------------------
+** Test passed
+--------------------------------
+** Test 88: formRichText - nesting - many asterisks and underscores
+--------------------------------
+** Test passed
+--------------------------------
+** Test 89: formRichText - no special characters
+--------------------------------
+** Test passed
+--------------------------------
+** Test 90: formRichText - textbuffer with a single empty line
+--------------------------------
+** Test passed
+--------------------------------
+** Test 91: formRichText - special characters on multiple lines
+--------------------------------
+** Test passed
+--------------------------------
+** Test 92: memory errors - newTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 93: memory errors - newTB + dumpTB without line numbers
+--------------------------------
+** Test passed
+--------------------------------
+** Test 94: memory errors - newTB + dumpTB with line numbers
+--------------------------------
+** Test passed
+--------------------------------
+** Test 95: memory errors - newTB + addPrefixTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 96: memory errors - newTB + deleteTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 97: memory errors - newTB + cutTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 98: memory errors - newTB + mergeTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 99: memory errors - newTB + pasteTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 100: memory errors - newTB + searchTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 101: memory errors - newTB + formRichText
+--------------------------------
+** Test passed
+--------------------------------
+** Test 102: memory leaks - newTB + releaseTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 103: memory leaks - newTB + dumpTB without line numbers + releaseTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 104: memory leaks - newTB + dumpTB with line numbers + releaseTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 105: memory leaks - newTB + addPrefixTB + releaseTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 106: memory leaks - newTB + deleteTB + releaseTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 107: memory leaks - newTB + cutTB + releaseTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 108: memory leaks - newTB + mergeTB + releaseTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 109: memory leaks - newTB + pasteTB + releaseTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 110: memory leaks - newTB + searchTB + releaseTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 111: memory leaks - newTB + formRichText + releaseTB
+--------------------------------
+** Test passed
+--------------------------------
+** Test 112: diffTB - simple example from spec
+--------------------------------
+** Test passed
+--------------------------------
+** Test 113: diffTB - first and last lines are different
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+*** Your edit string contains too many commands.           <
+*** Length of optimal solution: 2 commands                 <
+*** Length of brute force solution: 14 commands            <
+*** Threshold: avg(optimal, brute-force) = 8.0 commands    <
+*** Length of your solution: 14 commands                   <
+*** Here is your edit string for reference:                <
++,1,def                                                    <
+-,2                                                        <
++,2,ghi                                                    <
+-,3                                                        <
++,3,jkl                                                    <
+-,4                                                        <
++,4,mno                                                    <
+-,5                                                        <
++,5,pqr                                                    <
+-,6                                                        <
++,6,stu                                                    <
+-,7                                                        <
++,7,vwx                                                    <
+-,8                                                        <
+--------------------------------
+** Test 114: diffTB - first tb is a subsequence of the second tb
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    > Read in TB from 'diffTB/diff-03a.txt' into tb1
+                                                           >    > Read in TB from 'diffTB/diff-03b.txt' into tb2
+                                                           >    > dumpTB(tb1, false);
+                                                           >    this is a repeated line
+                                                           >    this is a repeated line
+                                                           >    > linesTB(tb1);
+                                                           >    2
+                                                           >    > dumpTB(tb2, false);
+                                                           >    hello world
+                                                           >    this is a repeated line
+                                                           >    three
+                                                           >    four
+                                                           >    five
+                                                           >    six
+                                                           >    seven
+                                                           >    this is a repeated line
+                                                           >    goodbye world
+                                                           >    > linesTB(tb2);
+                                                           >    9
+                                                           >    > diffTB(tb1, tb2);
+                                                           >    *** tb2:
+                                                           >    hello world
+                                                           >    this is a repeated line
+                                                           >    three
+                                                           >    four
+                                                           >    five
+                                                           >    six
+                                                           >    seven
+                                                           >    this is a repeated line
+                                                           >    goodbye world
+                                                           >    *** tb1 after applying edit commands:
+                                                           >    hello world
+                                                           >    this is a repeated line
+                                                           >    three
+                                                           >    four
+                                                           >    five
+                                                           >    six
+                                                           >    seven
+                                                           >    this is a repeated line
+                                                           >    goodbye world
+mergeOurTB: pos is out of range./runtest.sh: line 28: 15995 Aborted                 (core dumped) ./testTextbuffer $1
+"/tmp/COMP2521.20507.run/./runtest.sh": not in executable format: File format not recognized
+** Stack trace from gdb:
+"/tmp/COMP2521.20507.run/./runtest.sh": not in executable format: File format not recognized
+[New LWP 15995]
+Core was generated by `./testTextbuffer 114'.
+Program terminated with signal SIGABRT, Aborted.
+#0  0x00007fc9d9fe785b in ?? ()
+#1  0x0000000000000000 in ?? ()
+--------------------------------
+** Test 115: diffTB - tbs are almost reverses of each other (except the middle)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 116: diffTB - first tb is empty
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    > Read in TB from 'diffTB/diff-05a.txt' into tb1
+                                                           >    > Read in TB from 'diffTB/diff-05b.txt' into tb2
+                                                           >    > dumpTB(tb1, false);
+                                                           >    > linesTB(tb1);
+                                                           >    0
+                                                           >    > dumpTB(tb2, false);
+                                                           >    the first textbuffer
+                                                           >    is empty,
+                                                           >    can your program
+                                                           >    handle that? ;)
+                                                           >    > linesTB(tb2);
+                                                           >    4
+                                                           >    > diffTB(tb1, tb2);
+                                                           >    *** tb2:
+                                                           >    the first textbuffer
+                                                           >    is empty,
+                                                           >    can your program
+                                                           >    handle that? ;)
+                                                           >    *** tb1 after applying edit commands:
+                                                           >    the first textbuffer
+                                                           >    is empty,
+                                                           >    can your program
+                                                           >    handle that? ;)
+mergeOurTB: pos is out of range./runtest.sh: line 28: 16171 Aborted                 (core dumped) ./testTextbuffer $1
+"/tmp/COMP2521.20507.run/./runtest.sh": not in executable format: File format not recognized
+** Stack trace from gdb:
+"/tmp/COMP2521.20507.run/./runtest.sh": not in executable format: File format not recognized
+[New LWP 16171]
+Core was generated by `./testTextbuffer 116'.
+Program terminated with signal SIGABRT, Aborted.
+#0  0x00007f147cce385b in ?? ()
+#1  0x0000000000000000 in ?? ()
+--------------------------------
+** Test 117: diffTB - second tb is empty
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    > Read in TB from 'diffTB/diff-06a.txt' into tb1
+                                                           >    > Read in TB from 'diffTB/diff-06b.txt' into tb2
+                                                           >    > dumpTB(tb1, false);
+                                                           >    the second textbuffer
+                                                           >    is empty,
+                                                           >    can your program
+                                                           >    handle that? ;)
+                                                           >    > linesTB(tb1);
+                                                           >    4
+                                                           >    > dumpTB(tb2, false);
+                                                           >    > linesTB(tb2);
+                                                           >    0
+                                                           >    > diffTB(tb1, tb2);
+                                                           >    *** tb2:
+                                                           >    *** tb1 after applying edit commands:
+deleteOurTB: from is out of range./runtest.sh: line 28: 16292 Aborted                 (core dumped) ./testTextbuffer $1
+"/tmp/COMP2521.20507.run/./runtest.sh": not in executable format: File format not recognized
+** Stack trace from gdb:
+"/tmp/COMP2521.20507.run/./runtest.sh": not in executable format: File format not recognized
+[New LWP 16292]
+Core was generated by `./testTextbuffer 117'.
+Program terminated with signal SIGABRT, Aborted.
+#0  0x00007fb4d26cf85b in ?? ()
+#1  0x0000000000000000 in ?? ()
+--------------------------------
+** Test 118: diffTB - no lines in common
+--------------------------------
+** Test passed
+--------------------------------
+** Test 119: diffTB - tbs are identical
+--------------------------------
+** Test passed
+--------------------------------
+** Test 120: diffTB - simple case, like the example in the spec
+--------------------------------
+** Test passed
+--------------------------------
+** Test 121: diffTB - lines are scrambled
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+*** Your edit string contains too many commands.           <
+*** Length of optimal solution: 12 commands                <
+*** Length of brute force solution: 18 commands            <
+*** Threshold: avg(optimal, brute-force) = 15.0 commands   <
+*** Length of your solution: 18 commands                   <
+*** Here is your edit string for reference:                <
++,1,how well is                                            <
+-,2                                                        <
++,2,contain the                                            <
+-,3                                                        <
++,3,just scrambled                                         <
+-,4                                                        <
++,4,going to do?                                           <
+-,5                                                        <
++,5,same lines,                                            <
+-,6                                                        <
++,6,your program                                           <
+-,7                                                        <
++,7,textbuffers                                            <
+-,8                                                        <
++,8,around, so                                             <
+-,9                                                        <
++,9,these two                                              <
+-,10                                                       <
+--------------------------------
+** Test 122: undoTB/redoTB - undoing deleteTB
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line tres
+                                                           >    line cuatro
+                                                           >    line cinco
+3                                                          |    6
+--------------------------------
+** Test 123: undoTB/redoTB - undoing cutTB
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line dos
+                                                           >    line tres
+                                                           >    line cuatro
+3                                                          |    6
+--------------------------------
+** Test 124: undoTB/redoTB - undoing mergeTB
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+line un                                                    <
+line deux                                                  <
+line trois                                                 <
+9                                                          |    6
+--------------------------------
+** Test 125: undoTB/redoTB - undoing pasteTB
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+line un                                                    <
+line deux                                                  <
+line trois                                                 <
+9                                                          |    6
+--------------------------------
+** Test 126: undoTB/redoTB - undoing and redoing deleteTB
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line dos
+                                                           >    line tres
+                                                           >    line cuatro
+                                                           >    line cinco
+2                                                          |    6
+--------------------------------
+** Test 127: undoTB/redoTB - undoing and redoing cutTB
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line tres
+                                                           >    line cuatro
+4                                                          |    6
+--------------------------------
+** Test 128: undoTB/redoTB - undoing and redoing mergeTB
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+line un                                                    <
+line deux                                                  <
+line trois                                                 <
+9                                                          |    6
+--------------------------------
+** Test 129: undoTB/redoTB - undoing and redoing pasteTB
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+line un                                                    <
+line deux                                                  <
+line trois                                                 <
+9                                                          |    6
+--------------------------------
+** Test 130: undoTB/redoTB - undoing and redoing multiple deletes
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line 01
+                                                           >    line 05
+                                                           >    line 11
+                                                           >    line 12
+                                                           >    line 13
+                                                           >    line 14
+                                                           >    line 15
+                                                           >    line 16
+                                                           >    line 17
+                                                           >    line 18
+                                                           >    line 19
+                                                           >    line 20
+0                                                          |    12
+                                                           >    line 11
+                                                           >    line 12
+                                                           >    line 13
+                                                           >    line 14
+                                                           >    line 15
+0                                                          |    5
+                                                           >    line 01
+                                                           >    line 05
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+                                                           >    line 10
+                                                           >    line 11
+                                                           >    line 12
+                                                           >    line 13
+                                                           >    line 14
+                                                           >    line 15
+                                                           >    line 16
+                                                           >    line 17
+                                                           >    line 18
+                                                           >    line 19
+                                                           >    line 20
+0                                                          |    17
+                                                           >    line 01
+                                                           >    line 05
+                                                           >    line 11
+                                                           >    line 12
+                                                           >    line 13
+                                                           >    line 14
+                                                           >    line 15
+0                                                          |    7
+                                                           >    line 01
+                                                           >    line 02
+                                                           >    line 03
+                                                           >    line 04
+                                                           >    line 05
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+                                                           >    line 10
+                                                           >    line 11
+                                                           >    line 12
+                                                           >    line 13
+                                                           >    line 14
+                                                           >    line 15
+                                                           >    line 16
+                                                           >    line 17
+                                                           >    line 18
+                                                           >    line 19
+                                                           >    line 20
+0                                                          |    20
+--------------------------------
+** Test 131: undoTB/redoTB - undoing and redoing multiple merges
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+single line                                                <
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna let you down                                   <
+19                                                         |    14
+never gonna give you up                                    <
+never gonna let you down                                   <
+19                                                         |    17
+single line                                                <
+line ichi                                                  <
+never gonna give you up                                    <
+never gonna let you down                                   <
+line ni                                                    <
+never gonna give you up                                    <
+never gonna let you down                                   <
+line san                                                   <
+line yon                                                   <
+line go                                                    <
+19                                                         |    9
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna let you down                                   <
+19                                                         |    15
+line un                                                    <
+single line                                                <
+line deux                                                  <
+line trois                                                 <
+line ichi                                                  <
+never gonna give you up                                    <
+never gonna let you down                                   <
+line ni                                                    <
+never gonna give you up                                    <
+never gonna let you down                                   <
+line san                                                   <
+line yon                                                   <
+line go                                                    <
+19                                                         |    6
+--------------------------------
+** Test 132: undoTB/redoTB - undoing and redoing cascading cuts
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line 01
+                                                           >    line 14
+                                                           >    line 15
+5                                                          |    8
+                                                           >    line 01
+                                                           >    line 02
+                                                           >    line 03
+                                                           >    line 04
+                                                           >    line 05
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+                                                           >    line 10
+                                                           >    line 11
+                                                           >    line 12
+                                                           >    line 13
+                                                           >    line 14
+                                                           >    line 15
+5                                                          |    20
+                                                           >    line 04
+                                                           >    line 05
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+                                                           >    line 10
+5                                                          |    12
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+                                                           >    line 10
+3                                                          |    7
+                                                           >    line 14
+2                                                          |    3
+                                                           >    line 01
+                                                           >    line 14
+                                                           >    line 15
+5                                                          |    8
+--------------------------------
+** Test 133: undoTB/redoTB - undoing and redoing cascading pastes
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+line un                                                    <
+line deux                                                  <
+single line                                                <
+never gonna give you up                                    <
+single line                                                <
+never gonna let you down                                   <
+line trois                                                 <
+13                                                         |    6
+single line                                                <
+never gonna give you up                                    <
+single line                                                <
+never gonna let you down                                   <
+7                                                          |    3
+single line                                                <
+4                                                          |    3
+--------------------------------
+** Test 134: undoTB/redoTB - checking that undoTB can undo up to 10 operations
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line 02
+                                                           >    line 03
+                                                           >    line 04
+                                                           >    line 05
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+                                                           >    line 10
+                                                           >    line 11
+                                                           >    line 12
+                                                           >    line 13
+                                                           >    line 14
+                                                           >    line 15
+                                                           >    line 16
+                                                           >    line 20
+1                                                          |    17
+                                                           >    line 02
+                                                           >    line 03
+                                                           >    line 04
+                                                           >    line 05
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+                                                           >    line 10
+                                                           >    line 11
+                                                           >    line 12
+                                                           >    line 13
+                                                           >    line 14
+                                                           >    line 15
+                                                           >    line 16
+                                                           >    line 20
+1                                                          |    17
+--------------------------------
+** Test 135: undoTB/redoTB - undoing when there is nothing to be undone
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line dos
+                                                           >    line tres
+                                                           >    line cuatro
+                                                           >    line cinco
+                                                           >    line seis
+1                                                          |    6
+                                                           >    line dos
+                                                           >    line tres
+                                                           >    line cuatro
+                                                           >    line cinco
+                                                           >    line seis
+1                                                          |    6
+--------------------------------
+** Test 136: undoTB/redoTB - redoing when there is nothing to be redone
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line uno
+                                                           >    line dos
+                                                           >    line tres
+                                                           >    line cuatro
+                                                           >    line cinco
+1                                                          |    6
+--------------------------------
+** Test 137: undoTB/redoTB - can't redo anymore if a new operation is performed
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line 02
+                                                           >    line 03
+                                                           >    line 04
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+3                                                          |    10
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+3                                                          |    7
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+2                                                          |    6
+                                                           >    line 02
+                                                           >    line 03
+                                                           >    line 04
+                                                           >    line 05
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+2                                                          |    10
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+                                                           >    line 09
+2                                                          |    6
+--------------------------------
+** Test 138: undoTB/redoTB - all operations combined
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+line 05                                                    |    line 08
+line 16                                                    |    line 09
+line 17                                                    |    line 10
+line 18                                                    <
+line 19                                                    <
+line 20                                                    <
+13                                                         |    10
+line 05                                                    |    line 08
+line 16                                                    |    line 09
+line 17                                                    |    line 10
+line 18                                                    <
+line 19                                                    <
+line 20                                                    <
+17                                                         |    14
+line 19                                                    |    line 03
+                                                           >    line 04
+                                                           >    line 05
+line 05                                                    |    line 08
+line 16                                                    |    line 09
+line 17                                                    |    line 10
+line 18                                                    <
+line 19                                                    <
+line 20                                                    <
+                                                           >    line 16
+                                                           >    line 17
+                                                           >    line 18
+                                                           >    line 19
+17                                                         |    20
+--------------------------------
+** Test 139: undoTB/redoTB - a cut tb does not share undo history with its parent
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+                                                           >    line 02
+                                                           >    line 03
+                                                           >    line 04
+                                                           >    line 06
+                                                           >    line 07
+                                                           >    line 08
+4                                                          |    10
+                                                           >    line 07
+2                                                          |    3
+--------------------------------
+** Test 140: undoTB/redoTB - undoing and redoing self-pastes
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna give you up                                    <
+never gonna give you up                                    <
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna give you up                                    <
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna let you down                                   <
+never gonna give you up                                    <
+never gonna let you down                                   <
+32                                                         |    2
+--------------------------------
+** Test 141: undoTB/redoTB - undoing and redoing pastes
+--------------------------------
+** Test failed (student's output on left, expected on right). Output difference:-
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna give you up                                    <
+line un                                                    <
+never gonna give you up                                    <
+never gonna let you down                                   <
+line deux                                                  <
+line trois                                                 <
+never gonna let you down                                   <
+12                                                         |    3
+line un                                                    <
+never gonna give you up                                    <
+never gonna let you down                                   <
+line deux                                                  <
+line trois                                                 <
+line un                                                    <
+never gonna give you up                                    <
+never gonna let you down                                   <
+never gonna give you up                                    <
+line un                                                    <
+never gonna give you up                                    <
+never gonna let you down                                   <
+line deux                                                  <
+line trois                                                 <
+never gonna let you down                                   <
+line deux                                                  <
+line trois                                                 <
+19                                                         |    2
+--------------------------------
+!!section assess
+
+!!perftab       ** PERFORMANCE ANALYSIS **
+
+Test  1 (0.3)   dumpTB (no line numbers) - simple textbuffer ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  2 (0.1)   dumpTB (no line numbers) - textbuffer with no lines  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  3 (0.1)   dumpTB (no line numbers) - textbuffer with many lines .  ..  ..  ..  ..  ..  !!PASSed
+Test  4 (0.1)   dumpTB (no line numbers) - textbuffer with empty lines   ..  ..  ..  ..  ..  !!PASSed
+Test  5 (0.1)   dumpTB (no line numbers) - textbuffer with a long line   ..  ..  ..  ..  ..  !!PASSed
+Test  6 (0.1)   dumpTB (no line numbers) - textbuffer with one line  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  7 (0.06)  dumpTB (with line numbers) - simple textbuffer   ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  8 (0.06)  dumpTB (with line numbers) - textbuffer with no lines .  ..  ..  ..  ..  ..  !!PASSed
+Test  9 (0.06)  dumpTB (with line numbers) - textbuffer with many lines  ..  ..  ..  ..  ..  !!PASSed
+Test 10 (0.06)  dumpTB (with line numbers) - textbuffer with empty lines ..  ..  ..  ..  ..  !!PASSed
+Test 11 (0.06)  dumpTB (with line numbers) - textbuffer with long lines  ..  ..  ..  ..  ..  !!PASSed
+Test 12 (0.06)  dumpTB (with line numbers) - textbuffer with one line .  ..  ..  ..  ..  ..  !!PASSed
+Test 13 (0.06)  dumpTB (with line numbers) - line numbers after deleteTB ..  ..  ..  ..  ..  !!PASSed
+Test 14 (0.06)  dumpTB (with line numbers) - line numbers after cutTB .  ..  ..  ..  ..  ..  !!PASSed
+Test 15 (0.06)  dumpTB (with line numbers) - line numbers after mergeTB  ..  ..  ..  ..  ..  !!PASSed
+Test 16 (0.06)  dumpTB (with line numbers) - line numbers after pasteTB  ..  ..  ..  ..  ..  !!PASSed
+Test 17 (0.08)  linesTB - simple textbuffer  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 18 (0.08)  linesTB - textbuffer with no lines   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 19 (0.08)  linesTB - textbuffer with many lines ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 20 (0.08)  linesTB - textbuffer with empty lines .  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 21 (0.08)  linesTB - textbuffer with long lines ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 22 (0.2)   addPrefixTB - adding prefix to some lines .  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 23 (0.2)   addPrefixTB - adding prefix to all lines ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 24 (0.2)   addPrefixTB - adding an empty prefix ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 25 (0.1)   deleteTB - deleting some lines from the beginning .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 26 (0.1)   deleteTB - deleting some lines from the middle   ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 27 (0.1)   deleteTB - deleting some lines from the end  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 28 (0.1)   deleteTB - deleting all lines .  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 29 (0.1)   deleteTB - deleting a single line from the beginning ..  ..  ..  ..  ..  ..  !!PASSed
+Test 30 (0.1)   deleteTB - deleting a single line from the middle .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 31 (0.1)   deleteTB - deleting a single line from the end   ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 32 (0.1)   deleteTB - deleting multiple times   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 33 (0.1)   cutTB - cutting some lines from the beginning .  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 34 (0.1)   cutTB - cutting some lines from the middle   ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 35 (0.1)   cutTB - cutting some lines from the end  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 36 (0.1)   cutTB - cutting all lines .  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 37 (0.1)   cutTB - cutting a single line from the beginning ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 38 (0.1)   cutTB - cutting a single line from the end   ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 39 (0.1)   cutTB - cutting the same textbuffer multiple times   ..  ..  ..  ..  ..  ..  !!PASSed
+Test 40 (0.1)   cutTB - cascading cuts   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 41 (0.1)   mergeTB - merging an empty tb into another empty tb  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 42 (0.1)   mergeTB - merging a non-empty tb into an empty tb .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 43 (0.1)   mergeTB - merging an empty tb into a non-empty tb .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 44 (0.1)   mergeTB - merging into the beginning of a tb ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 45 (0.1)   mergeTB - merging into the middle of a tb .  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 46 (0.1)   mergeTB - merging into the end of a tb   ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 47 (0.1)   mergeTB - merging into the end of the same tb twice  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 48 (0.1)   mergeTB - cascading merges   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 49 (0.1)   pasteTB - pasting a non-empty tb into an empty tb .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 50 (0.1)   pasteTB - pasting an empty tb into a non-empty tb .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 51 (0.1)   pasteTB - pasting into the beginning of a tb ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 52 (0.1)   pasteTB - pasting into the middle of a tb .  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 53 (0.1)   pasteTB - pasting into the end of a tb   ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 54 (0.1)   pasteTB - pasting a tb into itself   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 55 (0.1)   pasteTB - pasting into the same tb multiple times .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 56 (0.1)   pasteTB - cascading pastes   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 57 (0.08)  searchTB - searching for the empty string .  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 58 (0.08)  searchTB - checking case sensitivity ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 59 (0.08)  searchTB - at most one occurrence per line 1 ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 60 (0.08)  searchTB - at most one occurrence per line 2 ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 61 (0.08)  searchTB - only one occurrence   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 62 (0.08)  searchTB - no occurrences .  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.08)
+Test 63 (0.08)  searchTB - multiple occurrences on the same line ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 64 (0.08)  searchTB - overlapping pattern 1 ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.08)
+Test 65 (0.08)  searchTB - overlapping pattern 2 ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.08)
+Test 66 (0.08)  searchTB - single-letter search string   ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 67 (0.032) formRichText - hash in the beginning of a line   ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 68 (0.032) formRichText - hash in the middle of a line  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 69 (0.032) formRichText - line with just a single hash  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 70 (0.032) formRichText - line with just three hashes   ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 71 (0.032) formRichText - entire line wrapped in asterisks  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 72 (0.032) formRichText - part of the line wrapped in asterisks ..  ..  ..  ..  ..  ..  !!PASSed
+Test 73 (0.032) formRichText - line with just one asterisk   ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 74 (0.032) formRichText - line with two consecutive asterisks   ..  ..  ..  ..  ..  ..  !!PASSed
+Test 75 (0.032) formRichText - line with two words wrapped in asterisks  ..  ..  ..  ..  ..  !!PASSed
+Test 76 (0.032) formRichText - entire line wrapped in underscores .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 77 (0.032) formRichText - part of the line wrapped in asterisks ..  ..  ..  ..  ..  ..  !!PASSed
+Test 78 (0.032) formRichText - line with just one underscore ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 79 (0.032) formRichText - line with two consecutive underscores ..  ..  ..  ..  ..  ..  !!PASSed
+Test 80 (0.032) formRichText - line with two words wrapped in underscores .  ..  ..  ..  ..  !!PASSed
+Test 81 (0.032) formRichText - hash in the beginning of a line containing asterisks  ..  ..  !!PASSed
+Test 82 (0.032) formRichText - hash in the middle of a line containing underscores   ..  ..  !!PASSed
+Test 83 (0.032) formRichText - line containing a pair of asterisks and underscores   ..  ..  !!PASSed
+Test 84 (0.032) formRichText - line containing asterisks and underscores, trickier   ..  ..  !!PASSed
+Test 85 (0.032) formRichText - lots of substitutions ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 86 (0.032) formRichText - nesting - pair of underscores within a pair of asterisks  ..  !!PASSed
+Test 87 (0.032) formRichText - nesting - pair of underscores overlap a pair of asterisks ..  !!PASSed
+Test 88 (0.032) formRichText - nesting - many asterisks and underscores  ..  ..  ..  ..  ..  !!PASSed
+Test 89 (0.032) formRichText - no special characters ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 90 (0.032) formRichText - textbuffer with a single empty line   ..  ..  ..  ..  ..  ..  !!PASSed
+Test 91 (0.032) formRichText - special characters on multiple lines  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 92 (0.04)  memory errors - newTB .  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 93 (0.04)  memory errors - newTB + dumpTB without line numbers  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 94 (0.04)  memory errors - newTB + dumpTB with line numbers ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 95 (0.04)  memory errors - newTB + addPrefixTB  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 96 (0.04)  memory errors - newTB + deleteTB ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 97 (0.04)  memory errors - newTB + cutTB .  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 98 (0.04)  memory errors - newTB + mergeTB  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 99 (0.04)  memory errors - newTB + pasteTB  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 100 (0.04) memory errors - newTB + searchTB ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 101 (0.04) memory errors - newTB + formRichText ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 102 (0.04) memory leaks - newTB + releaseTB ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 103 (0.04) memory leaks - newTB + dumpTB without line numbers + releaseTB   ..  ..  ..  !!PASSed
+Test 104 (0.04) memory leaks - newTB + dumpTB with line numbers + releaseTB  ..  ..  ..  ..  !!PASSed
+Test 105 (0.04) memory leaks - newTB + addPrefixTB + releaseTB   ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 106 (0.04) memory leaks - newTB + deleteTB + releaseTB  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 107 (0.04) memory leaks - newTB + cutTB + releaseTB ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 108 (0.04) memory leaks - newTB + mergeTB + releaseTB   ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 109 (0.04) memory leaks - newTB + pasteTB + releaseTB   ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 110 (0.04) memory leaks - newTB + searchTB + releaseTB  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 111 (0.04) memory leaks - newTB + formRichText + releaseTB  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 112 (0.1)  diffTB - simple example from spec .  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 113 (0.1)  diffTB - first and last lines are different  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.1)
+Test 114 (0.1)  diffTB - first tb is a subsequence of the second tb  ..  ..  ..  ..  ..  ..  !!FAILed (-0.1)
+Test 115 (0.1)  diffTB - tbs are almost reverses of each other (except the middle)   ..  ..  !!PASSed
+Test 116 (0.1)  diffTB - first tb is empty   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.1)
+Test 117 (0.1)  diffTB - second tb is empty  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.1)
+Test 118 (0.1)  diffTB - no lines in common  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 119 (0.1)  diffTB - tbs are identical   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 120 (0.1)  diffTB - simple case, like the example in the spec   ..  ..  ..  ..  ..  ..  !!PASSed
+Test 121 (0.1)  diffTB - lines are scrambled ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.1)
+Test 122 (0.05) undoTB/redoTB - undoing deleteTB ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 123 (0.05) undoTB/redoTB - undoing cutTB .  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 124 (0.05) undoTB/redoTB - undoing mergeTB  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 125 (0.05) undoTB/redoTB - undoing pasteTB  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 126 (0.05) undoTB/redoTB - undoing and redoing deleteTB ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 127 (0.05) undoTB/redoTB - undoing and redoing cutTB .  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 128 (0.05) undoTB/redoTB - undoing and redoing mergeTB  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 129 (0.05) undoTB/redoTB - undoing and redoing pasteTB  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 130 (0.05) undoTB/redoTB - undoing and redoing multiple deletes ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 131 (0.05) undoTB/redoTB - undoing and redoing multiple merges  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 132 (0.05) undoTB/redoTB - undoing and redoing cascading cuts   ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 133 (0.05) undoTB/redoTB - undoing and redoing cascading pastes ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 134 (0.05) undoTB/redoTB - checking that undoTB can undo up to 10 operations .  ..  ..  !!FAILed (-0.05)
+Test 135 (0.05) undoTB/redoTB - undoing when there is nothing to be undone   ..  ..  ..  ..  !!FAILed (-0.05)
+Test 136 (0.05) undoTB/redoTB - redoing when there is nothing to be redone   ..  ..  ..  ..  !!FAILed (-0.05)
+Test 137 (0.05) undoTB/redoTB - can't redo anymore if a new operation is performed   ..  ..  !!FAILed (-0.05)
+Test 138 (0.05) undoTB/redoTB - all operations combined  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 139 (0.05) undoTB/redoTB - a cut tb does not share undo history with its parent ..  ..  !!FAILed (-0.05)
+Test 140 (0.05) undoTB/redoTB - undoing and redoing self-pastes  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+Test 141 (0.05) undoTB/redoTB - undoing and redoing pastes   ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-0.05)
+
+!!perfmark      ** TOTAL PERFORMANCE MARK:    8.26/10
+
+!!marktab       **  MARKER'S  ASSESSMENT  **
+
+                    Style and Complexity  (2)   2
+ ^
+ + ================================================================================= +
+ + Fantastic effort. Code good in terms of style and commenting. Complexity was fine +
+ + ================================================================================= +
+
+!!finalmark     **  FINAL  ASSIGNMENT  MARK:    10.26/12
+
+5160021 Zhu, Alex J H                           3589/3 ACTLD1 MATHU1
+
+
+Marked by z5115177 on Tue Nov 26 14:37:01 2019
+
+
