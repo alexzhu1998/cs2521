@@ -1,0 +1,22 @@
+COMP1927 15s2 Exam Question 4 (Fury of Dracula)
+
+A.
+Catle Dracula or CD
+
+B.
+It's represend that Dracula move to city somewhere, which hunter still can't see, just know that Dracula in Land, ont Sea place.
+
+C.
+Normally hunter can move to hospital, andwhen hunter dead, health blood point is zero or less, hunter will move to hospital and get new full blood point.
+
+D.
+He can stay at Lisbon, or go to...
+Gadiz by road
+madrid by road or by rail
+Santander by road or by 2 hops on rail
+Saragossa by 2 hops on rail
+Alicante by 2 hops on rail
+
+E.
+Dracular can't Hide at Lisbon, can he can't go to
+Saragossa, and Alicante because he can't hop on rail.

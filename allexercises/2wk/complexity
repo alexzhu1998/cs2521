@@ -1,0 +1,37 @@
+Complexity classes for ...
+
+(a) find max value in unordered array
+
+core: (a[i] > max)
+g(n): N-1
+complexity: O(n)
+
+(b) find max value in sorted (ascending) array
+
+core: return a[N-1]
+g(n): 1
+complexity: O(1)
+
+(c) search for value in unordered array
+
+core: (a[i] == k)
+g(n): best:1, worst:N-1, avg:N/2
+complexity: O(n)
+
+(d) find max value in sorted (ascending) linked list
+
+core: cur = cur->next
+g(n): N-1
+complexity: O(n)
+
+(e) search for value in sorted array
+
+core: cmp(a[mid],k)
+g(n): best:1, worst:log_2(N), avg:~log_2(N)
+complexity: O(logn)
+
+(f) compute n! (iterative)
+
+core: fac = fac * i
+g(n): n
+complexity: O(n)

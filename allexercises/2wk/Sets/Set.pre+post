@@ -1,0 +1,83 @@
+valid(T,X) = object referenced by X is a valid instance of ADT T
+ptr(X) = the actual pointer value stored in X
+val(X) = the ADT "value" represented by the contents of *X
+X' = value of X at end of function, if we need to distinugish
+     this from its value at the start of the function
+Ret = the return value from a function
+
+Pre: some memory is available
+
+  Set newSet() ... create new empty set
+
+Post: valid(Set,Ret) && SetIsEmpty(Ret)
+
+
+Pre: valid(Set,s)
+
+  Set SetCopy(Set s) ... make a copy of a set
+
+Post: valid(Set,Ret) && ptr(Ret) != ptr(s) && val(Ret) == val(s)
+
+
+Pre: valid(Set,s) && valid(integer,i)
+
+  void SetInsert(Set s, int i) ... add item into set
+
+Post: val(s') == val(s) U {i}
+
+
+Pre: valid(Set,i) && valid(integer,i)
+
+  void SetDelete(Set s, int i) ... remove item from set
+
+Post: val(s') == val(s) - {i}
+
+
+Pre: valid(Set,s) && valid(integer,i)
+
+  int SetMember(Set s, int i) ... set membership test
+
+Post: Ret == (i in val(s))
+
+
+Pre: valid(Set,s) && valid(Set,t)
+
+  Set SetUnion(Set s, Set t) ... union
+
+Post: valid(Set,Ret) && val(Ret) == val(s) U val(t)
+
+
+Pre: valid(Set,s) && valid(Set,t)
+
+  Set SetIntersect(Set s, Set t) ... intersection
+
+Post: valid(Set,Ret) && val(Ret) == val(s) * val(t)
+
+
+Pre: valid(Set,s)
+
+  int SetCard(Set s) ... cardinality (#elements)
+
+Post: Ret == |val(s)|
+
+
+Pre: valid(Set,s)
+
+  void dropSet(Set s) ... free memory used by set
+
+Post: !valid(Set,s')
+
+
+Pre: valid(Set,s)
+
+  void showSet(Set s) ... display as {1,2,3...}
+
+Post: valid(Set,s) && val(s) displayed on stdout
+
+
+Pre: valid(FILE*,f) && isReadable(f) && valid(Set,s)
+
+  void readSet(File *f, Set s) ... read+insert set values
+
+Post: val(s') also contains all values from f
+

@@ -1,0 +1,62 @@
+// mergePass: make one pass through file
+// * input sorted runs are length runLength
+// * output sorted runs are length 2*runLength
+void mergePass(char *inFile, char *outFile, int runLength, int nLines)
+{
+	FILE *inf1, *inf2, *outf;
+	int  n = 0; // current set of runs
+	int  inLine1 = 0, inLine2 = 0; // current line within runs
+	int  startRun1, startRun2, endRun1, endRun2; // file "indexes"
+	char line1[MAXLINE], line2[MAXLINE]; //line buffers
+
+	// initialise file handles
+	inf1 = openFile(inFile, "reading");
+	inf2 = openFile(inFile, "reading");
+	outf = openFile(outFile, "writing");
+
+	// until all input is consumed
+	for (;;) {
+		// compute line #'s for start/end of next runs
+		startRun1 = 2*n*runLength + 1;
+		if (startRun1 > nLines) break;
+		endRun1 = startRun1 + runLength - 1;
+		startRun2 = endRun1 + 1;
+		endRun2 = startRun2 + runLength - 1;
+		if (endRun2 > nLines) endRun2 = nLines;
+		// align file handles at start of next two runs
+		while (inLine1 < startRun1) {
+			fgets(line1, MAXLINE, inf1);
+			inLine1++;
+		}
+		while (inLine2 < startRun2) {
+			fgets(line2, MAXLINE, inf2);
+			inLine2++;
+		}
+		// perform merging
+		while (inLine1 <= endRun1 && inLine2 <= endRun2) {
+			if (strcmp(line1,line2) < 0) {
+				fputs(line1, outf);
+				fgets(line1, MAXLINE, inf1);
+				inLine1++;
+			}
+			else {
+				fputs(line2, outf);
+				fgets(line2, MAXLINE, inf2);
+				inLine2++;
+			}
+		}
+		while (inLine1 <= endRun1) {
+			fputs(line1, outf);
+			fgets(line1, MAXLINE, inf1);
+			inLine1++;
+		}
+		while (inLine2 <= endRun2) {
+			fputs(line2, outf);
+			fgets(line2, MAXLINE, inf2);
+			inLine2++;
+		}
+		n++;
+	}
+	// close files
+	fclose(inf1); fclose(inf2); fclose(outf);
+}

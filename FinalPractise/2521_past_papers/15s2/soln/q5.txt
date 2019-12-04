@@ -1,0 +1,27 @@
+COMP1927 15s2 Exam Question 5 (Binary Search Trees)
+
+A.
+4 comparisons, compare with 42 69 50 and then 60 and find it
+
+B.
+1 comparison, case is when search for the root, which is 42
+
+C.
+maximum is 6 comparison when search for 33 and 51
+
+D.
+
+maximum is 4 comparison 
+when search for key 17 - 19 ( will compare 42 20 9 16) and the can't find
+and key that less than 4 (any - 4) (will compare 42 20 9 4 and not find)
+and when search for 43 (will pass 42 69 50 44 and not found)
+and number 61 - 68 (will pass 42 69 50 60 and not found)
+and number 86 - 89 (will pass 42 69 85 90 and not found).
+ 
+E.
+44
+
+F.
+root = 20
+right child = 42
+left child = 9

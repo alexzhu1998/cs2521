@@ -1,0 +1,29 @@
+COMP1927 15s2 Exam Question 8 (Hash Table)
+
+A.
+average = M / N = 100 / 11 = 9
+M = number of insert value = 100
+N = number of slot = 11
+
+B.
+slot 9 will be search, and it'll compare with 4 number, from 9 -> 20 -> 31 -> and found 42
+
+C.
+slot 9 will be search, and to find 999, 90 items will be examine until find 999 as number 91th on list.
+
+D.
+worst case is when search for N (or key which in same length with N), which will examine N/11 number
+
+E.
+best case is when sear for the first list onlink list, which is number 1 - 11 which will find it suddently when search in slot.
+
+F.
+HashTable h = newHashTable(n);
+if (h->lists[hash[k]] == NoItem){
+    List curr = newList(k);
+    for (int i = 1 ; i < 100 ; i++){
+        List new = newList(k+11);
+        curr->next = new;
+        new->next = NULL;
+    }
+}

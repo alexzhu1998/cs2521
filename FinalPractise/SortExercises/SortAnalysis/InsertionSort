@@ -1,0 +1,32 @@
+void insertionSort(int a[], int lo, int hi)
+{
+   int i, j, val;
+   for (i = lo+1; i <= hi; i++) {
+      val = a[i];
+      for (j = i; j > lo; j--) {
+         if (val >= a[j-1]) break;
+         a[j] = a[j-1];
+      }
+      a[j] = val;
+   }
+}
+
+
+(a)
+lo       hi
+5 1 2 6 4 3
+1 5 2 6 4 3
+1 2 5 6 4 3
+1 2 5 6 4 3
+1 2 4 5 6 3
+1 2 3 4 5 6
+
+
+(b)
+lo       hi
+1 2 3 4 5 6
+
+
+(c)
+lo       hi
+6 5 4 3 2 1

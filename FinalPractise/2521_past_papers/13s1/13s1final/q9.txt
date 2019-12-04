@@ -1,0 +1,52 @@
+Question 9 ... COMP1927 13s1 Final Exam
+
+
+A.
+
+Use the following format for your answer ...
+
+Iteration   Data     Values
+
+0           Queue    -
+            Current  -
+            Visited  {}
+
+1           Queue    ?
+            Current
+            Visited  ?
+
+2           Queue    ?
+            Current
+            Visited  ?
+
+etc.
+
+Visiting Order:  ...
+
+
+B.
+
+Use the following format for your answer ...
+
+Iteration   Data     Values
+
+0           Queue    -
+            Current  -
+            Visited  {}
+
+1           Queue    ?
+            Current
+            Visited  ?
+
+2           Queue    ?
+            Current
+            Visited  ?
+
+etc.
+
+Visiting Order:  ...
+
+
+C. (bonus question)
+
+Replace this by your answer

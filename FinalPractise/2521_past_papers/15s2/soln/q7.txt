@@ -1,0 +1,13 @@
+COMP1927 15s2 Exam Question 7 (Mergesort)
+
+A.
+o s r t i n g i a s e w o s e m
+
+o r s t g i i n a e s w e m o s
+
+g i i n o r s t a e e m o s s w 
+
+a e e g i i m n o o r s s s t w
+
+B.
+to find the end which will be high value when in merge function, which will compare, and we have to has this line for choose the one that near to the low value in merge function.

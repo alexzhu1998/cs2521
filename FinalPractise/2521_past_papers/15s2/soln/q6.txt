@@ -1,0 +1,12 @@
+COMP1927 15s2 Exam Question 6 (Weighted DiGraphs)
+
+A.
+A - b - G - M - S - T - U - V
+2.8
+
+B.
+V - Q - K - J - H - G - F - A
+3.1
+
+C.
+No, node R cannot be reach due to it has only the out from node arrow.

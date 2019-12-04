@@ -1,0 +1,36 @@
+void bubbleSort(int a[], int lo, int hi)
+{
+   int i, j, nswaps;
+   for (i = lo; i < hi; i++) {
+      nswaps = 0;
+      for (j = hi; j > i; j--) {
+         if (less(a[j], a[j-1])) {
+            swap(a[j], a[j-1]);  nswaps++;
+         }
+      }
+      if (nswaps == 0) break;
+   }
+}
+
+
+(a)
+lo       hi
+5 1 2 6 4 3  start i == 0
+5 1 2 6 3 4
+5 1 2 3 6 4
+1 5 2 3 6 4  start i == 1
+1 5 2 3 4 6
+1 2 5 3 4 6
+1 2 3 5 4 6
+1 2 3 4 5 6
+
+
+
+(b)
+lo       hi
+1 2 3 4 5 6
+
+
+(c)
+lo       hi
+6 5 4 3 2 1

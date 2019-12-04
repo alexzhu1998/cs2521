@@ -1,0 +1,7 @@
+int isSorted(Item a[], int lo, int hi)
+{
+	int i;
+	for (i = lo; i < hi; i++) 
+		if (!(less(a[i],a[i+1]) || eq(a[i],a[i+1]))) return 0;
+	return 1;
+}
