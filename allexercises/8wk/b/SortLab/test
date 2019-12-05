@@ -1,0 +1,15 @@
+#!/bin/sh
+
+case $# in
+1) N="$1" ; Ord="R" ; Seed="0" ;;
+2) N="$1" ; Ord="$2" ; Seed="0" ;;
+3) N="$1" ; Ord="$2" ; Seed="$3" ;;
+*) echo "Usage: $0 N [Ord] [Seed]" ; exit 1 ;;
+esac
+
+for sort in s b i h q m
+do
+	# echo ./sorter $sort $N $Ord $Seed 
+	echo $sort $N $Ord \
+	$(./sorter $sort $N $Ord $Seed | grep '^#compare')
+done

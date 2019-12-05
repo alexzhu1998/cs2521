@@ -1,0 +1,28 @@
+void selectionSort(int a[], int lo, int hi)
+{
+   int i, j, min;
+   for (i = lo; i < hi; i++) {
+      min = i;
+      for (j = i+1; j <= hi; j++) {
+         if (a[j] < a[min]) min = j;
+      }
+      swap(a[i], a[min]);
+   }
+}
+
+(a)
+lo       hi
+5 1 2 6 4 3
+1 5 2 6 4 3
+1 2 5 6 4 3
+1 2 3 6 4 5
+
+
+(b)
+lo       hi
+1 2 3 4 5 6
+
+
+(c)
+lo       hi
+6 5 4 3 2 1

@@ -46,10 +46,10 @@ int main(void) {
 	testPasteTB();
 	testCutTB();
 	testSearchTB();
-	testDeleteTB();
-	testFormRichText();
-	testDiffTB();
-	testUndoTB();
+	// testDeleteTB();
+	// testFormRichText();
+	// testDiffTB();
+	// testUndoTB();
 	// TODO: Call more test functions
 	
 	
@@ -685,6 +685,19 @@ static void testSearchTB (void) {
     printf("PASSED\n");
     freeList(matchNode3);
 	releaseTB(tb3);
+
+	printf("-----------------------------------------\n"
+	       "            searchTB special tests       \n"
+	       "      case: 0 lines TB   search: hihi    \n"
+	       "-----------------------------------------\n");
+	           
+    TB tb3a = newTB("hihihihihihihi\n");
+    
+    Match matchNode3a = searchTB(tb3a, "hihi");
+    printList(matchNode3a);
+	printf("PASSED\n");
+    freeList(matchNode3a);
+	releaseTB(tb3a);
 	
     printf("-----------------------------------------\n"
            "            searchTB tests               \n"
@@ -706,7 +719,7 @@ static void testSearchTB (void) {
 	           
     TB tb5 = newTB("iihiihihihihiii\nihihiihiiihihi\n");
     
-    Match matchNode5 = searchTB(tb5, "iii");
+    Match matchNode5 = searchTB(tb5, "i");
     printList(matchNode5);
     printf("PASSED\n");
     freeList(matchNode5);

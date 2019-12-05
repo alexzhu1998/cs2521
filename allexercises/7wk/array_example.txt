@@ -1,0 +1,29 @@
+Ins [0] [1] [2] [3] [4] [5] [6] [7] [8] [9]
+
+S    S
+
+O    S   O
+
+R    S   O   R
+
+T    S   O   R   T  (fixUp (T > O))
+     S   T   R   O  (fixUp (T > S))
+     T   S   R   O
+
+Ins [0] [1] [2] [3] [4] [5] [6] [7] [8] [9]
+
+I    T   S   R   O   I  (fixUp (I < R))
+
+N    T   S   R   O   I   N  (fixUp (N < R))
+
+G    T   S   R   O   I   N   G  (fixUp (G < O))
+
+I    T   S   R   O   I   N   G   I  (fixUp (I < O))
+
+S    T   S   R   O   I   N   G   I   S  (fixUp (S > I), swap)
+     T   S   R   O   S   N   G   I   I  (fixUp (S > R), swap)
+     T   S   S   O   R   N   G   I   I
+
+F
+U
+N

@@ -638,7 +638,7 @@ Match searchTB (TB tb, char *search) {
         while ((pointer = strstr(pointer,search)) != NULL) {
             cNum = pointer - curr->value + 1;
             //shifting position to its next substring
-            pointer++;
+            pointer+=strlen(search);
             if (numNodes == 0) {
                 currNode->columnNumber = cNum;
                 currNode->lineNumber = lNum;
@@ -654,7 +654,11 @@ Match searchTB (TB tb, char *search) {
     }
     
     currNode->next = NULL;
-    
+    if (numNodes == 0) {
+        free(head);
+        return NULL;
+    }
+
     return head;
 }
 

@@ -1,0 +1,46 @@
+int sortInitRuns(char *inFile, char *outFile, int runLength)
+{
+	int  i, n; // # lines in current run
+	int  nlines; // total #lines
+	char **lines; // buffers for lines in run
+	FILE *inf, *outf; // file handles
+
+	// create line buffers; assume malloc OK
+	lines = malloc(runLength*sizeof(char *));
+	for (i = 0; i < runLength; i++)
+		lines[i] = malloc(MAXLINE*sizeof(char));
+
+	// read input, sort runs, write to output
+	inf = openFile(inFile,"reading");
+	outf = openFile(outFile,"writing");
+	n = 0;  nlines = 0;
+	while (fgets(lines[n],MAXLINE,inf) != NULL) {
+		n++;  nlines++;
+		if (n == runLength) {
+			// filled one initial run
+			// sort it, write it, reset for next run
+			qsort(lines, n, sizeof(char *), cmp);
+			for (i = 0; i < n; i++)
+				fputs(lines[i], outf);
+			n = 0;
+		}
+	}
+
+	// deal with final run whose size < runLength
+	if (n > 0) {
+		qsort(lines, n, sizeof(char *), cmp);
+		for (i = 0; i < n; i++)
+			fputs(lines[i], outf);
+		n = 0;
+	}	
+
+	// free line buffers
+	for (i = 0; i < runLength; i++) free(lines[i]);
+	free(lines);
+
+	// close files
+	fclose(inf); fclose(outf);
+
+	// return line count
+	return nlines;
+}

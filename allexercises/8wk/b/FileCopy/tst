@@ -1,0 +1,9 @@
+for b in 1024 8192 65536
+do
+	for in in 1 2 3
+	do
+		echo Buffer size $b
+		time ./fcp3 War+Peace.txt xx $b
+		echo ""
+	done
+done
