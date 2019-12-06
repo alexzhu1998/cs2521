@@ -55,10 +55,12 @@ void showTree(Tree t) {
 
 // compute height of Tree
 int TreeHeight(Tree t) {
+   if (t == NULL) return 0;
 
-   // not yet implemented
+   int leftHeight = TreeHeight(left(t));
+   int rightHeight = TreeHeight(right(t));
 
-   return -1;
+   return (leftHeight > rightHeight) ? leftHeight + 1 : rightHeight + 1;
 }
 
 // count #nodes in Tree
@@ -83,12 +85,13 @@ bool TreeSearch(Tree t, Item it) {
 
 // insert a new item into a Tree
 Tree TreeInsert(Tree t, Item it) {
-   if (t == NULL)
+   if (t == NULL) {
       t = newNode(it);
-   else if (it < data(t))
-      left(t) = TreeInsert(left(t), it);
-   else if (it > data(t))
-      right(t) = TreeInsert(right(t), it);
+   } else if (it < data(t)) {
+      left(t) = TreeInsert(left(t),it);
+   } else if (it > data(t)) {
+      right(t) = TreeInsert(right(t),it);
+   }
    return t;
 }
 
@@ -101,12 +104,12 @@ Tree joinTrees(Tree t1, Tree t2) {
       Tree curr = t2;
       Tree parent = NULL;
       while (left(curr) != NULL) {    // find min element in t2
-	 parent = curr;
-	 curr = left(curr);
+         parent = curr;
+         curr = left(curr);
       }
       if (parent != NULL) {
-	 left(parent) = right(curr);  // unlink min element from parent
-	 right(curr) = t2;
+         left(parent) = right(curr);  // unlink min element from parent
+         right(curr) = t2;
       }
       left(curr) = t1;
       return curr;                    // min element is new root
@@ -117,21 +120,21 @@ Tree joinTrees(Tree t1, Tree t2) {
 Tree TreeDelete(Tree t, Item it) {
    if (t != NULL) {
       if (it < data(t))
-	 left(t) = TreeDelete(left(t), it);
+         left(t) = TreeDelete(left(t), it);
       else if (it > data(t))
-	 right(t) = TreeDelete(right(t), it);
+         right(t) = TreeDelete(right(t), it);
       else {
-	 Tree new;
-	 if (left(t) == NULL && right(t) == NULL) 
-	    new = NULL;
-	 else if (left(t) == NULL)    // if only right subtree, make it the new root
-	    new = right(t);
-	 else if (right(t) == NULL)   // if only left subtree, make it the new root
-	    new = left(t);
-	 else                         // left(t) != NULL and right(t) != NULL
-	    new = joinTrees(left(t), right(t));
-	 free(t);
-	 t = new;
+         Tree new;
+         if (left(t) == NULL && right(t) == NULL) 
+            new = NULL;
+         else if (left(t) == NULL)    // if only right subtree, make it the new root
+            new = right(t);
+         else if (right(t) == NULL)   // if only left subtree, make it the new root
+            new = left(t);
+         else                         // left(t) != NULL and right(t) != NULL
+            new = joinTrees(left(t), right(t));
+         free(t);
+         t = new;
       }
    }
    return t;
@@ -157,8 +160,16 @@ Tree rotateLeft(Tree n2) {
 
 Tree insertAtRoot(Tree t, Item it) {
 
-   printf("Not yet implemented.\n");
-   
+   if (t == NULL) {
+      t = newNode(it);
+      return t;
+   }
+   if (it != data(t) && TreeSearch(t,it) == false){
+      Tree newRoot = newNode(it);
+      if (it < data(t)) right(newRoot) = t;
+      else left(newRoot) = t;
+      return newRoot;
+   } 
    return t;
 }
 
@@ -167,11 +178,11 @@ Tree partition(Tree t, int i) {
       assert(0 <= i && i < TreeNumNodes(t));
       int m = TreeNumNodes(left(t));
       if (i < m) {
-	 left(t) = partition(left(t), i);
-	 t = rotateRight(t);
+         left(t) = partition(left(t), i);
+         t = rotateRight(t);
       } else if (i > m) {
-	 right(t) = partition(right(t), i-m-1);
-	 t = rotateLeft(t);
+         right(t) = partition(right(t), i-m-1);
+         t = rotateLeft(t);
       }
    }
    return t;
@@ -185,4 +196,68 @@ Tree rebalance(Tree t) {
       right(t) = rebalance(right(t));
    }
    return t;
+}
+
+// Count number of even nodes
+int count (Tree t) {
+   if (t == NULL) return 0;
+   return count(left(t)) + count(right(t)) + 1;
+}
+
+// Count number of even nodes
+int countEven (Tree t) {
+   if (t == NULL) return 0;
+   int addVal = 0;
+   if (data(t) % 2 == 0) addVal = 1;
+   return countEven(left(t)) + countEven(right(t)) + addVal;
+}
+
+// Count number of internal nodes
+int countInternal (Tree t) {
+   if (t == NULL) return 0;
+
+   int addVal = 0;
+   if (left(t) != NULL || right(t) != NULL) {
+      addVal = 1;
+   }
+   return countInternal(left(t)) + countInternal(right(t)) + addVal;
+}
+
+// Returns -1 if there is a node whose left and right subtree
+// have a difference of geq than 5 else return 1
+int myBal5 (Tree t) {
+   if (t == NULL) return 1;
+   
+   int ans = myCount(t);
+
+   if (ans != -1) ans = 1;
+   return ans;
+}
+
+int myCount (Tree t) {
+   
+   if (t == NULL) return 0;
+
+   int lansw = myCount(left(t));
+   int ransw = myCount(right(t));
+
+   if (lansw == -1 || ransw == -1) return -1;
+   if (ransw-lansw >= 5 || ransw - lansw <= -5)
+      return -1;
+   return lansw + ransw + 1;
+}
+
+// If left and right subtree have difference of geq 
+// than 5, add to number of nodes. Return the total number
+// of nodes satisfying this condition
+int countUneqNode (Tree t) {
+   if (t == NULL) return 0;
+
+   int lansw = count(left(t));
+   int ransw = count(right(t));
+
+   if (ransw-lansw >= 5 || ransw - lansw <= -5)
+      return countUneqNode(left(t)) + countUneqNode(right(t)) + 1;
+   else 
+      return countUneqNode(left(t)) + countUneqNode(right(t));
 }

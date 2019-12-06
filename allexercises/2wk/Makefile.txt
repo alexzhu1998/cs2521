@@ -6,3 +6,6 @@ treeLab.o : treeLab.c BSTree.h
 
 BSTree.o : BSTree.c BSTree.h
 	gcc -Wall -Werror -c BSTree.c
+
+clean :
+	rm -f *.o BSTree treeLab

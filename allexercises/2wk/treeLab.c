@@ -18,7 +18,7 @@ int main(void) {
 	 
       case 'n':	 
          freeTree(mytree);
-	 mytree = newTree();
+	      mytree = newTree();
          break;
 
       case 'i':
@@ -39,7 +39,7 @@ int main(void) {
          else
             printf("Not found\n");
          noShow = true;
-	 break;
+	      break;
 	 
       case 'r':
          mytree = rotateRight(mytree);
@@ -58,9 +58,16 @@ int main(void) {
          break;
 	 
       case 'q':
-	 printf("Bye.\n");
-	 freeTree(mytree);
+         printf("Bye.\n");
+         freeTree(mytree);
          return 0;
+      
+      case 't':
+         printf("Count Even %d\n",countEven(mytree));
+         printf("Count Internal %d\n",countInternal(mytree));
+         printf("Count myBal5 %d\n",myBal5(mytree));
+         printf("Count Unequal Nodes %d\n",countUneqNode(mytree)); 
+         break;
 	 
       default:
          help();
@@ -68,17 +75,15 @@ int main(void) {
       }
       
       if (noShow) {
-	 noShow = false;
-	 printf("\n> ");
+         noShow = false;
+         printf("\n> ");
       } else {
-	 printf("New Tree:");
-	 printf("  #nodes = %d,  ", TreeNumNodes(mytree));
-	 printf("  height = %d\n", TreeHeight(mytree));
-	 if (TreeHeight(mytree) < 8)
-	    showTree(mytree);
-	 else
-	    printf("New Tree is too deep to display nicely\n");
-	 printf("\n> ");
+         printf("New Tree:");
+         printf("  #nodes = %d,  ", TreeNumNodes(mytree));
+         printf("  height = %d\n", TreeHeight(mytree));
+         if (TreeHeight(mytree) < 8) {showTree(mytree);}
+         else {printf("New Tree is too deep to display nicely\n");}
+         printf("\n> ");
       }
    }
 
@@ -97,5 +102,6 @@ void help() {
    printf("l = rotate tree left around root\n");
    printf("p I = partition tree around I'th element\n");
    printf("b = rebalance tree\n");
+   printf("t = special test\n");
    printf("q = quit\n");
 }

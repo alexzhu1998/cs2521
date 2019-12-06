@@ -22,3 +22,10 @@ Tree rotateLeft(Tree);
 Tree insertAtRoot(Tree, Item);
 Tree partition(Tree, int);
 Tree rebalance(Tree);
+Tree joinTrees(Tree t1, Tree t2);
+
+int countEven (Tree t); 
+int countInternal (Tree t);
+int myBal5 (Tree t);
+int myCount (Tree t);
+int countUneqNode (Tree t);
